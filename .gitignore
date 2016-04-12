@@ -13,8 +13,7 @@ tmp/
 *.swp
 
 # Local configuration files.
-/build/.env
-/build/.tools
+/build/*.conf
 
 # Precompiled Headers.
 *.gch

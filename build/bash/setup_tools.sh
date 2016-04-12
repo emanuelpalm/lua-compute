@@ -1,7 +1,7 @@
 # Checks availability of all required command line tools.
 
 # Local file signifying that all tools are available.
-PROJECT_TOOLS="$PROJECT_BUILD/.tools"
+PROJECT_TOOLS="$PROJECT_BUILD/tools.conf"
 
 # Checks whether provided command line tool exists in PATH or not. Returns 0 if
 # available, 1 if not.

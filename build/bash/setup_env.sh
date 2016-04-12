@@ -1,7 +1,7 @@
 # Ensures required environment variables are defined.
 
 # Local file containing shell definitions.
-PROJECT_ENV="$PROJECT_BUILD/.env"
+PROJECT_ENV="$PROJECT_BUILD/env.conf"
 
 # Attempts to find named directory, returning its path if successful.
 findpath() {
