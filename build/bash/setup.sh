@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ### A collection of routines for setting up your local repository for building
-### and development. Prints nothing if no action is required.
+### and development. Prints nothing if no action is performed.
 
 ## Standard functions.
 abspath() {
