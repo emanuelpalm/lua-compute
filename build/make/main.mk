@@ -3,6 +3,8 @@
 # Relative path to build/make folder.
 PROJECT_MAKE := $(dir $(lastword $(MAKEFILE_LIST)))
 
+-include ${PROJECT_MAKE}../env.conf
+
 default: setup
 
 .PHONY: default
