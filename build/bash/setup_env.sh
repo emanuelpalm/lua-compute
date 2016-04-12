@@ -23,31 +23,72 @@ findpath() {
     echo "$result"
 }
 
-POPULATE_ENV=0
 MISSING=0
 
-if [ -f "$PROJECT_ENV" ];
-then
+[[ -f "$PROJECT_ENV" ]] && {
     . "$PROJECT_ENV"
-else
-    POPULATE_ENV=1
-fi
+}
 
 # Resolve Android NDK path.
-[[ -z "$PATH_NDK_BUNDLE" ]] && {
-    PATH_NDK_BUNDLE=$(findpath "*/ndk-bundle/ndk-build")
-    if [ "$PATH_NDK_BUNDLE" != "" ];
+[[ -z "$NDK_PATH" ]] && {
+    NDK_PATH=$(findpath "*/ndk-bundle/ndk-build")
+    if [ "$NDK_PATH" != "" ];
     then
-        PATH_NDK_BUNDLE=$(dirname "$PATH_NDK_BUNDLE")
-        echo "PATH_NDK_BUNDLE=$PATH_NDK_BUNDLE" >> "$PROJECT_ENV"
+        NDK_PATH=$(dirname "$NDK_PATH")
     else
         let "MISSING += 1"
-        echo >&2 "     Android NDK not found. Cannot define PATH_NDK_BUNDLE."
+        echo >&2 "     Android NDK not found. Cannot set NDK_PATH."
     fi
 }
 
-if [ "$MISSING" != "0" ];
+# Resolve Android NDK ABI level and platform.
+([[ -z "$NDK_PLATFORM" ]] || [[ -z "$NDK_PLATFORM_ABI" ]]) \
+    && [[ "$NDK_PATH" != "" ]] && {
+    for level in $NDK_PLATFORM_ABI 16 9 21 23 24 25 26 27 28 29 30 3 4 5 8;
+    do
+        NDK_PLATFORM=$(findpath "$NDK_PATH/platform*-$level")
+        [[ "$NDK_PLATFORM" != "" ]] && {
+            NDK_PLATFORM_ABI="$level"
+            break
+        }
+    done
+    [[ "$NDK_PLATFORM" == "" ]] && {
+        let "MISSING += 1"
+        echo >&2 "     No NDK platform found. Cannot set NDK_PLATFORM."
+        echo >&2 "     No NDK platform found. Cannot set NDK_PLATFORM_ABI."
+    }
+}
+
+# Resolve target Android NDK CPU architectures.
+[[ -z "$NDK_TARGET_ARCHS" ]] && [[ "$NDK_PLATFORM" != "" ]] && {
+    echo >&2 -n "   - Finding platform architecutes ..."
+    platforms="$(find $NDK_PLATFORM -iname arch-* -type d 2>/dev/null)"
+    for i in $platforms;
+    do
+        name=$(basename "$i")
+        echo >&2 -n " ${name:5}"
+        NDK_TARGET_ARCHS="$i:$NDK_TARGET_ARCHS"
+    done
+    echo >&2
+
+    unset name
+    unset platforms
+
+    [[ "$NDK_TARGET_ARCHS" == "" ]] && {
+        let "MISSING += 1"
+        echo >&2 "     No NDK target archs found. Cannot set NDK_TARGET_ARCHS."
+    }
+
+    NDK_TARGET_ARCHS="${NDK_TARGET_ARCHS%?}"
+}
+
+if [ "$MISSING" == "0" ];
 then
+    echo "NDK_PATH=$NDK_PATH" > "$PROJECT_ENV"
+    echo "NDK_PLATFORM=$NDK_PLATFORM" >> "$PROJECT_ENV"
+    echo "NDK_PLATFORM_ABI=$NDK_PLATFORM_ABI" >> "$PROJECT_ENV"
+    echo "NDK_TARGET_ARCHS=$NDK_TARGET_ARCHS" >> "$PROJECT_ENV"
+else
     echo >&2
     echo >&2 "  [!] Some significant paths could not be resolved. Please"
     echo >&2 "  review the above list and make sure all desired utilities"
