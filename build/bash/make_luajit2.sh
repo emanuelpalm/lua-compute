@@ -24,6 +24,7 @@ fi
 PLATFORM=${2:-native}
 
 LUA_PATH="$PROJECT_LIBS/luajit2"
+MAKE="make"
 
 # Builds for Android.
 android() {

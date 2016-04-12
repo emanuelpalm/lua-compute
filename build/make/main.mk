@@ -6,6 +6,7 @@ PROJECT_MAKE := $(dir $(lastword $(MAKEFILE_LIST)))
 -include ${PROJECT_MAKE}../env.conf
 
 default: setup
+RM = rm -f
 
 .PHONY: default
 

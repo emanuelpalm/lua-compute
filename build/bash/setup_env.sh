@@ -29,11 +29,6 @@ MISSING=0
     . "$PROJECT_ENV"
 }
 
-# Sets reference to make utility.
-[[ -z "$MAKE" ]] && {
-    MAKE="make"
-}
-
 # Resolve Android NDK path.
 [[ -z "$NDK_PATH" ]] && {
     NDK_PATH=$(findpath "*/ndk-bundle/ndk-build")
@@ -97,11 +92,6 @@ MISSING=0
     PROJECT_OUT="$PROJECT_ROOT/out"
 }
 
-# Sets remove file utility.
-[[ -z "$RM" ]] && {
-    RM="rm -f"
-}
-
 # Sets current platform name.
 [[ -z "$UNAME" ]] && {
     UNAME=`uname`
@@ -110,7 +100,6 @@ MISSING=0
 if [ "$MISSING" == "0" ];
 then
     touch "$PROJECT_ENV"
-    echo "MAKE=$MAKE" >> "$PROJECT_ENV"
     echo "NDK_PATH=$NDK_PATH" >> "$PROJECT_ENV"
     echo "NDK_PLATFORM=$NDK_PLATFORM" >> "$PROJECT_ENV"
     echo "NDK_PLATFORM_ABI=$NDK_PLATFORM_ABI" >> "$PROJECT_ENV"
@@ -119,7 +108,6 @@ then
     echo "PROJECT_LIBS=$PROJECT_LIBS" >> "$PROJECT_ENV"
     echo "PROJECT_OUT=$PROJECT_OUT" >> "$PROJECT_ENV"
     echo "PROJECT_ROOT=$PROJECT_ROOT" >> "$PROJECT_ENV"
-    echo "RM=$RM" >> "$PROJECT_ENV"
     echo "UNAME=$UNAME" >> "$PROJECT_ENV"
 else
     echo >&2
