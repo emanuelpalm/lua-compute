@@ -12,6 +12,10 @@ tmp/
 *~
 *.swp
 
+# Local configuration files.
+/build/.env
+/build/.tools
+
 # Precompiled Headers.
 *.gch
 *.pch
