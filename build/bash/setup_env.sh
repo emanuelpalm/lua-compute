@@ -29,6 +29,11 @@ MISSING=0
     . "$PROJECT_ENV"
 }
 
+# Sets reference to make utility.
+[[ -z "$MAKE" ]] && {
+    MAKE="make"
+}
+
 # Resolve Android NDK path.
 [[ -z "$NDK_PATH" ]] && {
     NDK_PATH=$(findpath "*/ndk-bundle/ndk-build")
@@ -92,9 +97,16 @@ MISSING=0
     PROJECT_OUT="$PROJECT_ROOT/out"
 }
 
+# Sets current platform name.
+[[ -z "$UNAME" ]] && {
+    UNAME=`uname`
+}
+
 if [ "$MISSING" == "0" ];
 then
-    echo "NDK_PATH=$NDK_PATH" > "$PROJECT_ENV"
+    touch "$PROJECT_ENV"
+    echo "MAKE=$MAKE" >> "$PROJECT_ENV"
+    echo "NDK_PATH=$NDK_PATH" >> "$PROJECT_ENV"
     echo "NDK_PLATFORM=$NDK_PLATFORM" >> "$PROJECT_ENV"
     echo "NDK_PLATFORM_ABI=$NDK_PLATFORM_ABI" >> "$PROJECT_ENV"
     echo "NDK_TARGET_ARCHS=$NDK_TARGET_ARCHS" >> "$PROJECT_ENV"
@@ -102,6 +114,7 @@ then
     echo "PROJECT_LIBS=$PROJECT_LIBS" >> "$PROJECT_ENV"
     echo "PROJECT_OUT=$PROJECT_OUT" >> "$PROJECT_ENV"
     echo "PROJECT_ROOT=$PROJECT_ROOT" >> "$PROJECT_ENV"
+    echo "UNAME=$UNAME" >> "$PROJECT_ENV"
 else
     echo >&2
     echo >&2 "  [!] Some significant paths could not be resolved. Please"
