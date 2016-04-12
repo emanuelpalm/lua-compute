@@ -99,7 +99,7 @@ MISSING=0
 
 if [ "$MISSING" == "0" ];
 then
-    touch "$PROJECT_ENV"
+    echo "" > "$PROJECT_ENV"
     echo "NDK_PATH=$NDK_PATH" >> "$PROJECT_ENV"
     echo "NDK_PLATFORM=$NDK_PLATFORM" >> "$PROJECT_ENV"
     echo "NDK_PLATFORM_ABI=$NDK_PLATFORM_ABI" >> "$PROJECT_ENV"
