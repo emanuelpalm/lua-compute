@@ -44,7 +44,7 @@ MISSING=0
 # Resolve Android NDK ABI level and platform.
 ([[ -z "$NDK_PLATFORM" ]] || [[ -z "$NDK_PLATFORM_ABI" ]]) \
     && [[ "$NDK_PATH" != "" ]] && {
-    for level in $NDK_PLATFORM_ABI 16 9 21 23 24 25 26 27 28 29 30 3 4 5 8;
+    for level in $NDK_PLATFORM_ABI 16 21 23 24 25 26 27 28 29 30 3 4 5 8 9;
     do
         NDK_PLATFORM=$(findpath "$NDK_PATH/platform*-$level")
         [[ "$NDK_PLATFORM" != "" ]] && {
