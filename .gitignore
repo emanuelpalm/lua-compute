@@ -8,6 +8,10 @@
 out/
 tmp/
 
+# Other temporary files.
+*~
+*.swp
+
 # Precompiled Headers.
 *.gch
 *.pch
