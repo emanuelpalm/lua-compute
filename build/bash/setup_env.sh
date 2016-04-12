@@ -5,7 +5,7 @@ PROJECT_ENV="$PROJECT_BUILD/env.conf"
 
 # Attempts to find named directory, returning its path if successful.
 findpath() {
-    echo >&2 -n "   - Finding $1 ..."
+    echo >&2 -n "Finding $1 ..."
     local result=""
     for path in ~ /opt;
     do
@@ -42,7 +42,7 @@ MISSING=0
         NDK_PATH=$(dirname "$NDK_PATH")
     else
         let "MISSING += 1"
-        echo >&2 "     Android NDK not found. Cannot set NDK_PATH."
+        echo >&2 "! Android NDK not found. Cannot set NDK_PATH."
     fi
 }
 
@@ -59,14 +59,14 @@ MISSING=0
     done
     [[ "$NDK_PLATFORM" == "" ]] && {
         let "MISSING += 1"
-        echo >&2 "     No NDK platform found. Cannot set NDK_PLATFORM."
-        echo >&2 "     No NDK platform found. Cannot set NDK_PLATFORM_ABI."
+        echo >&2 "! No NDK platform found. Cannot set NDK_PLATFORM."
+        echo >&2 "! No NDK platform found. Cannot set NDK_PLATFORM_ABI."
     }
 }
 
 # Resolve target Android NDK CPU architectures.
 [[ -z "$NDK_TARGET_ARCHS" ]] && [[ "$NDK_PLATFORM" != "" ]] && {
-    echo >&2 -n "   - Finding platform architecutes ..."
+    echo >&2 -n "Finding supported platform architecutes ..."
     platforms="$(find $NDK_PLATFORM -iname arch-* -type d 2>/dev/null)"
     for i in $platforms;
     do
@@ -81,7 +81,7 @@ MISSING=0
 
     [[ "$NDK_TARGET_ARCHS" == "" ]] && {
         let "MISSING += 1"
-        echo >&2 "     No NDK target archs found. Cannot set NDK_TARGET_ARCHS."
+        echo >&2 "! No NDK target archs found. Cannot set NDK_TARGET_ARCHS."
     }
 
     NDK_TARGET_ARCHS="${NDK_TARGET_ARCHS%?}"
@@ -117,13 +117,13 @@ then
     echo "UNAME=$UNAME" >> "$PROJECT_ENV"
 else
     echo >&2
-    echo >&2 "  [!] Some significant paths could not be resolved. Please"
-    echo >&2 "  review the above list and make sure all desired utilities"
-    echo >&2 "  are installed and available via your home folder. If you"
-    echo >&2 "  intalled the listed utilities outside your home folder,"
-    echo >&2 "  you have the option of specifying those paths manually in"
-    echo >&2 "  the following file:"
+    echo >&2 "[!] Some significant paths could not be resolved. Please review"
+    echo >&2 "    the above list and make sure all desired utilities are"
+    echo >&2 "    installed and available via your home folder. If you"
+    echo >&2 "    intalled the listed utilities outside your home folder, you"
+    echo >&2 "    have the option of specifying those paths manually in the"
+    echo >&2 "    following file:"
     echo >&2
-    echo >&2 "  $PROJECT_ENV"
+    echo >&2 "    $PROJECT_ENV"
     echo >&2
 fi
