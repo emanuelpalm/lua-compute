@@ -62,13 +62,11 @@ android() {
         local bin_prefix=${gcc%???}
         local lua_prefix="$PROJECT_OUT/android-$name/libs/luajit2"
         local uname=`uname`
-        set -x
         mkdir -p "$lua_prefix"
         cd "$LUA_PATH" \
             && $MAKE CC=gcc HOST_CC="gcc -m$cpu" HOST_SYS=$uname CROSS=$bin_prefix TARGET_FLAGS="--sysroot=$1" TARGET_SYS=Linux \
             && $MAKE install PREFIX=\""$lua_prefix"\" \
             && $MAKE clean
-        set +x
     fi
 }
 
