@@ -21,6 +21,7 @@ exists() {
 [[ -e "$PROJECT_TOOLS" ]] || {
     MISSING=0
 
+    let "MISSING += $(exists find)"
     let "MISSING += $(exists git)"
     
     if [ "$MISSING" == "0" ];
