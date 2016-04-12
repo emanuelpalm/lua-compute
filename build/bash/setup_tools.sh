@@ -22,6 +22,7 @@ exists() {
     MISSING=0
 
     let "MISSING += $(exists find)"
+    let "MISSING += $(exists gcc)"
     let "MISSING += $(exists git)"
     let "MISSING += $(exists make)"
     let "MISSING += $(exists mkdir)"
