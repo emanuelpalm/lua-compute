@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# Builds luaJIT 2 for a specified platform.
+# Builds luaJIT 2 for a specified platform. Builds using $MAKE, puts build
+# output in out/<platform/libs/luajot2/ and then cleans the luajit2 submodule.
 
 if [ "$#" -lt 1 ];
 then
