@@ -97,6 +97,11 @@ MISSING=0
     PROJECT_OUT="$PROJECT_ROOT/out"
 }
 
+# Sets remove file utility.
+[[ -z "$RM" ]] && {
+    RM="rm -f"
+}
+
 # Sets current platform name.
 [[ -z "$UNAME" ]] && {
     UNAME=`uname`
@@ -114,6 +119,7 @@ then
     echo "PROJECT_LIBS=$PROJECT_LIBS" >> "$PROJECT_ENV"
     echo "PROJECT_OUT=$PROJECT_OUT" >> "$PROJECT_ENV"
     echo "PROJECT_ROOT=$PROJECT_ROOT" >> "$PROJECT_ENV"
+    echo "RM=$RM" >> "$PROJECT_ENV"
     echo "UNAME=$UNAME" >> "$PROJECT_ENV"
 else
     echo >&2
