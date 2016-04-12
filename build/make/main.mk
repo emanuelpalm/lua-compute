@@ -3,17 +3,13 @@
 # Relative path to build/make folder.
 PROJECT_MAKE := $(dir $(lastword $(MAKEFILE_LIST)))
 
--include ${PROJECT_MAKE}../env.conf
-
-default: setup
 RM = rm -f
 
-.PHONY: default
+-include ${PROJECT_MAKE}../env.conf
+include ${PROJECT_MAKE}/setup.mk
 
-setup:
-	@${PROJECT_MAKE}../bash/setup.sh
+default: default-setup
+all: all-setup
+clean: clean-setup
 
-.PHONY: setup
-
-clean-setup:
-	$(foreach F,$(wildcard ${PROJECT_MAKE}../*.conf),$(RM) $F;)
+.PHONY: default all clean
