@@ -1,8 +1,5 @@
 # Main MAKE file.
 
-# Used command line utilities.
-RM=rm -f
-
 # Relative path to build/make folder.
 PROJECT_MAKE := $(dir $(lastword $(MAKEFILE_LIST)))
 
