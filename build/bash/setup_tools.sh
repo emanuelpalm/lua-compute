@@ -23,6 +23,8 @@ exists() {
 
     let "MISSING += $(exists find)"
     let "MISSING += $(exists git)"
+    let "MISSING += $(exists make)"
+    let "MISSING += $(exists mkdir)"
     
     if [ "$MISSING" == "0" ];
     then
