@@ -64,9 +64,9 @@ android() {
         local uname=`uname`
         mkdir -p "$lua_prefix"
         cd "$LUA_PATH" \
+            && $MAKE clean \
             && $MAKE CC=gcc HOST_CC="gcc -m$cpu" HOST_SYS=$uname CROSS=$bin_prefix TARGET_FLAGS="--sysroot=$1" TARGET_SYS=Linux \
-            && $MAKE install PREFIX=\""$lua_prefix"\" \
-            && $MAKE clean
+            && $MAKE install PREFIX=\""$lua_prefix"\"
     fi
 }
 
@@ -76,9 +76,9 @@ native() {
     local lua_prefix="$PROJECT_OUT/native/libs/luajit2"
     mkdir -p "$lua_prefix"
     cd "$LUA_PATH" \
+        && $MAKE clean \
         && $MAKE \
-        && $MAKE install PREFIX=\""$lua_prefix"\" \
-        && $MAKE clean
+        && $MAKE install PREFIX=\""$lua_prefix"\"
 }
 
 case $PLATFORM in
