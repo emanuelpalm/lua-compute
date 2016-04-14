@@ -1,5 +1,6 @@
 #include "lmr.h"
 #include "lmrlua.h"
+#include <stdlib.h>
 
 LMR_API int lmr_openlib(lua_State *L, const lmr_Config *c) { return -1; }
 
