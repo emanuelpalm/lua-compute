@@ -17,7 +17,7 @@ RELEASE_LDFLAGS = ${LDFLAGS} -Os
 
 TEST_CC         = ${DEBUG_CC}
 TEST_CFLAGS     = ${DEBUG_CFLAGS}
-TEST_LDFLAGS    = -lluajit ${DEBUG_LDFLAGS}
+TEST_LDFLAGS    = -L/usr/local/lib -lluajit -static ${DEBUG_LDFLAGS}
 
 OEXT            = o
 
