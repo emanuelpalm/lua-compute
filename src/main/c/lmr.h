@@ -7,7 +7,6 @@
 #define lmr_h
 
 #include "lmrconf.h"
-#include <lua.h>
 #include <stdint.h>
 
 /*!
