@@ -10,8 +10,12 @@
 #include <lua.h>
 #include <stdint.h>
 
-/*! A function used to receive `lmr:log()` calls. */
-typedef void (*lmr_Logfunction)(const char* s);
+/*!
+** A function used to receive `lmr:log()` calls.
+**
+** Called with `job_id`, `batch_id`, and the logged string.
+*/
+typedef void (*lmr_Logfunction)(const uint32_t, const uint32_t, const char*);
 
 /*!
 ** LMR Lua library configuration.
