@@ -40,7 +40,7 @@ typedef struct {
 */
 typedef struct {
     uint32_t job_id;
-    uint8_t *prog_lua;
+    char *prog_lua;
 } lmr_Job;
 
 /*!
