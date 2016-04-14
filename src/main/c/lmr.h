@@ -8,23 +8,76 @@
 
 #include "lmrconf.h"
 #include <lua.h>
+#include <stdint.h>
 
-/*! Adds LMR library functions to provided lua state. */
-LMR_API void lmr_openlib(lua_State *L);
+/*! A function used to receive `lmr:log()` calls. */
+typedef void (*lmr_Logfunction)(const char* s);
 
 /*!
-** Gets serialized results, available at the top of the result stack, from
-** previous calls to the Lua functions `lmr:map()` and `lmr:reduce()`.
+** LMR Lua library configuration.
 **
-** This operation does not modify the result stack. Use `lmr_popresults()` to
-** remove unwanted result entries.
-** 
-** The returned pointer points to dynamic memory and should be `free()`d once
-** no longer needed. Returns `NULL` only in case of memory allocation failure.
+** Provided when initializing an LMR Lua context using `lmr_openlib()` in order
+** to configure LMR behavior.
 */
-LMR_API char *lmr_getresults(lua_State *L);
+typedef struct {
+    //! Log function used when forwarding `lmr:log()` calls. Must not be NULL.
+    lmr_Logfunction logfunction;
+} lmr_Config;
 
-/*! Removes any entry at the top of the result stack. */
-LMR_API void lmr_popresults(lua_State *L);
+/*!
+** A job definition, containing a job ID and a lua program able to process data
+** batches.
+**
+** A job is essentially an arbitrary Lua program that is required to call the
+** function `lmr:job(callback)` with a provided callback, which is subsequently
+** called whenever the job receives a new batch of data to process.
+**
+** Instances of `lmr_Job` must to be destroyed using `lmr_freejob()` once no
+** longer used.
+*/
+typedef struct {
+    uint32_t job_id;
+    uint8_t *prog_lua;
+} lmr_Job;
+
+/*!
+** A job batch, containing a job ID, a batch ID, and arbitrary data.
+**
+** Batches are fed as input into jobs, and are also received as output when
+** jobs complete.
+**
+** Instances of `lmr_Batch` must be destroyed using `lmr_freebatch()` once no
+** longer used.
+*/
+typedef struct {
+    uint32_t job_id, batch_id;
+    uint8_t *data;
+} lmr_Batch;
+
+/*! Adds LMR library functions to provided lua state. */
+LMR_API void lmr_openlib(lua_State *L, const lmr_Config *c);
+
+/*!
+** Registers provided job in Lua state.
+**
+** The job is safe to destroy at any point after the function returns.
+**
+** Returns 0 if registration was successful.
+*/
+LMR_API int lmr_register(lua_State *L, const lmr_Job j);
+
+/*!
+** Processes, using referenced Lua state, in-batch and writes any results to
+** out-batch.
+**
+** Both batches are safe to destroy at any point after the function returns.
+*/
+LMR_API int lmr_process(lua_State *L, const lmr_Batch in, lmr_Batch *out);
+
+/*! Destroys provided job, freeing any resources held. */
+LMR_API void lmr_freejob(lmr_Job j);
+
+/*! Destroys provided batch, freeing any resources held. */
+LMR_API void lmr_freebatch(lmr_Batch b);
 
 #endif
