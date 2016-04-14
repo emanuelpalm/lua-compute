@@ -14,7 +14,7 @@
 **
 ** Called with `job_id`, `batch_id`, and the logged string.
 */
-typedef void (*lmr_Logfunction)(const uint32_t, const uint32_t, const char*);
+typedef void (*lmr_LogFunction)(const uint32_t, const uint32_t, const char*);
 
 /*!
 ** LMR Lua library configuration.
@@ -24,7 +24,7 @@ typedef void (*lmr_Logfunction)(const uint32_t, const uint32_t, const char*);
 */
 typedef struct {
     //! Log function used when forwarding `lmr:log()` calls. Must not be NULL.
-    lmr_Logfunction logfunction;
+    lmr_LogFunction log_function;
 } lmr_Config;
 
 /*!
