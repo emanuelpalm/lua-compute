@@ -1,7 +1,7 @@
 /*!
 ** Lua Map/Reduce Lua API header.
 **
-** This file exists primarilt for documentation purposes. It lists and
+** This file exists primarily for documentation purposes. It lists and
 ** documents all the functions provided to Lua states via the `lmr_openlib()`
 ** function.
 **
