@@ -57,8 +57,12 @@ typedef struct {
     uint8_t *data;
 } lmr_Batch;
 
-/*! Adds LMR library functions to provided lua state. */
-LMR_API void lmr_openlib(lua_State *L, const lmr_Config *c);
+/*!
+** Adds LMR library functions to provided lua state.
+**
+** Returns `0` (OK), or `LMR_ERRMEM`.
+*/
+LMR_API int lmr_openlib(lua_State *L, const lmr_Config *c);
 
 /*!
 ** Registers provided job in Lua state.
