@@ -1,55 +1,83 @@
-# Base build settings.
-AR              = ar
+# Build settings.
+AR              = ar -rcu
 CC              = clang
 CFLAGS          = -std=c99 -Wall -Wpedantic
 LDFLAGS         =
-RM				= rm -f
+RM              = rm -f
 
-# Debug build settings.
 DEBUG_AR        = ${AR}
 DEBUG_CC        = ${CC}
 DEBUG_CFLAGS    = ${CFLAGS} -O0 -g
 DEBUG_LDFLAGS   = ${LDFLAGS}
 
-# Release build settings.
 RELEASE_AR      = ${AR}
 RELEASE_CC      = ${CC}
 RELEASE_CFLAGS  = ${CFLAGS} -O3
 RELEASE_LDFLAGS = ${LDFLAGS} -Os
 
-# Test build settings.
 TEST_CC         = ${DEBUG_CC}
 TEST_CFLAGS     = ${DEBUG_CFLAGS}
 TEST_LDFLAGS    = ${DEBUG_LDFLAGS}
 
+OEXT            = o
+
 # Source and object files.
 CFILES          = $(wildcard src/main/c/*.c)
-OFILES          = $(CFILES:%.c=%.o)
+OFILES          = $(CFILES:%.c=%.${OEXT})
+LIBA            = libluamare.a
+LIBSO           = libluamare.so
 
-# Test files.
+DEBUG_LIBA      = $(LIBA:%.a=%.debug.a)
+DEBUG_LIBSO     = $(LIBSO:%.so=%.debug.so)
+
+RELEASE_LIBA    = ${LIBA}
+RELEASE_LIBSO   = ${LIBSO}
+
 TEST_BIN        = lmr-tests.out
-TEST_CFILES     = $(wildcard src/test/c/*.c)
-TEST_OFILES     = $(TEST_CFILES:%.c=%.o)
+TEST_CFILES     = ${CFILES} $(wildcard src/test/c/*.c)
+TEST_OFILES     = $(TEST_CFILES:%.c=%.${OEXT})
 
 default: test
 
-all: release test
+all: debug release test
 
 debug:
+	@${MAKE} ${DEBUG_LIBA} LIBA="${DEBUG_LIBA}" CC="${DEBUG_CC}" \
+		CFLAGS="${DEBUG_CFLAGS}" LDFLAGS="${DEBUG_LDFLAGS}" OEXT="debug.o" \
+		--no-print-directory
+	@${MAKE} ${DEBUG_LIBSO} LIBSO="${DEBUG_LIBSO}" CC="${DEBUG_CC}" \
+		CFLAGS="${DEBUG_CFLAGS} -fPIC" LDFLAGS="${DEBUG_LDFLAGS}" \
+		OEXT="debug.pic.o" --no-print-directory
 
 release:
+	@${MAKE} ${RELEASE_LIBA} LIBA="${RELEASE_LIBA}" CC="${RELEASE_CC}" \
+		CFLAGS="${RELEASE_CFLAGS}" LDFLAGS="${RELEASE_LDFLAGS}" \
+		--no-print-directory
+	@${MAKE} ${RELEASE_LIBSO} LIBSO="${RELEASE_LIBSO}" CC="${RELEASE_CC}" \
+		CFLAGS="${RELEASE_CFLAGS} -fPIC" LDFLAGS="${RELEASE_LDFLAGS}" \
+		OEXT="pic.o" --no-print-directory
 
 test:
-	${MAKE} ${TEST_BIN} CC="${TEST_CC}" CFLAGS="${TEST_CFLAGS}" \
-		LDFLAGS="${TEST_LDFLAGS}"
+	@${MAKE} ${TEST_BIN} CC="${TEST_CC}" CFLAGS="${TEST_CFLAGS}" \
+		LDFLAGS="${TEST_LDFLAGS}" OEXT="debug.o" --no-print-directory
 
 clean:
-	$(foreach F,${OFILES},${RM} $F)
-	$(foreach F,${TEST_BIN},${RM} $F)
-	$(foreach F,${TEST_OFILES},${RM} $F)
+	$(foreach F,$(wildcard src/main/c/*.o),${RM} $F)
+	$(foreach F,$(wildcard *.a),${RM} $F)
+	$(foreach F,$(wildcard *.so),${RM} $F)
+	$(foreach F,$(wildcard ${TEST_BIN}),${RM} $F)
+	$(foreach F,$(wildcard src/test/c/*.o),${RM} $F)
 
-%.o:
-	${CC} ${CFLAGS} -c $(@:%.o=%.c) -o $@
+.PHONY: default all debug release test clean
+
+%.${OEXT}:
+	${CC} ${CFLAGS} -c $(@:%.${OEXT}=%.c) -o $@
+
+${LIBA}: ${OFILES}
+	${AR} $@ $^
+
+${LIBSO}: ${OFILES}
+	${CC} -shared ${LDFLAGS} -o $@ $^
 
 ${TEST_BIN}: ${TEST_OFILES}
 	${CC} ${LDFLAGS} -o $@ $^
