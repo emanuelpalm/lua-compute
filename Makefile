@@ -1,3 +1,18 @@
+# Platform settings.
+PLATFORM_OS     = $(shell uname -s)
+PLATFORM_ARCH   = $(shell uname -m)
+
+ifeq (${PLATFORM_OS},Darwin)
+	PLATFORM_CFLAGS = -I/usr/local/include
+	PLATFORM_TEST_LDFLAGS = -L/usr/local/lib -lluajit
+	PLATFORM_SOEXT = dylib
+	ifneq ($(filter %64,${PLATFORM_ARCH}),)
+		PLATFORM_TEST_LDFLAGS += -pagezero_size 10000 -image_base 100000000
+	endif
+else
+	PLATFORM_SOEXT = so
+endif
+
 # Build settings.
 AR              = ar -rcu
 CC              = clang
@@ -7,28 +22,29 @@ RM              = rm -f
 
 DEBUG_AR        = ${AR}
 DEBUG_CC        = ${CC}
-DEBUG_CFLAGS    = ${CFLAGS} -O0 -g
+DEBUG_CFLAGS    = ${CFLAGS} -O0 -g ${PLATFORM_CFLAGS}
 DEBUG_LDFLAGS   = ${LDFLAGS}
 
 RELEASE_AR      = ${AR}
 RELEASE_CC      = ${CC}
-RELEASE_CFLAGS  = ${CFLAGS} -O3
+RELEASE_CFLAGS  = ${CFLAGS} -O3 ${PLATFORM_CFLAGS}
 RELEASE_LDFLAGS = ${LDFLAGS} -Os
 
 TEST_CC         = ${DEBUG_CC}
 TEST_CFLAGS     = ${DEBUG_CFLAGS}
-TEST_LDFLAGS    = -L/usr/local/lib -lluajit -static ${DEBUG_LDFLAGS}
+TEST_LDFLAGS    = ${DEBUG_LDFLAGS} ${PLATFORM_TEST_LDFLAGS}
 
 OEXT            = o
+SOEXT           = ${PLATFORM_SOEXT}
 
 # Source and object files.
 CFILES          = $(wildcard src/main/c/*.c)
 OFILES          = $(CFILES:%.c=%.${OEXT})
 LIBA            = libluamare.a
-LIBSO           = libluamare.so
+LIBSO           = libluamare.${SOEXT}
 
 DEBUG_LIBA      = $(LIBA:%.a=%.debug.a)
-DEBUG_LIBSO     = $(LIBSO:%.so=%.debug.so)
+DEBUG_LIBSO     = $(LIBSO:%.${SOEXT}=%.debug.${SOEXT})
 
 RELEASE_LIBA    = ${LIBA}
 RELEASE_LIBSO   = ${LIBSO}
