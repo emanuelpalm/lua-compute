@@ -13,6 +13,4 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch in, lmr_Batch* out)
 
 int lmr_l_job(lua_State* L) { return 0; }
 
-int lmr_l_report(lua_State* L) { return 0; }
-
 int lmr_l_log(lua_State* L) { return 0; }
