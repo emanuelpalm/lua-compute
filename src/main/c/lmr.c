@@ -2,25 +2,53 @@
 #include "lmrlua.h"
 #include <stdlib.h>
 
-static const char* KEY_JOB_ID = "lmr_job_id";
+typedef struct {
+    int32_t job_id;
+    int32_t batch_id;
+    lmr_LogFunction log_function;
+} lmr_State;
 
 LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c)
 {
-    static const luaL_Reg functions[] = {
-        {.name = "register", .func = lmr_l_register },
-        {.name = "log", .func = lmr_l_log },
-        {.name = NULL, .func = NULL },
-    };
-    luaL_register(L, "lmr", functions);
+    // Add global LMR state object.
+    {
+        lmr_State* state = lua_newuserdata(L, sizeof(lmr_State));
+        state->batch_id = 0;
+        state->job_id = 0;
+        state->log_function = c->log_function;
+        luaL_newmetatable(L, "LMR.state");
+
+        // Add LMR Lua methods to state object.
+        lua_newtable(L);
+        {
+            lua_pushcfunction(L, lmr_l_register);
+            lua_setfield(L, -2, "register");
+
+            lua_pushcfunction(L, lmr_l_log);
+            lua_setfield(L, -2, "log");
+        }
+        lua_setfield(L, -2, "__index");
+
+        // Create jobs table.
+        lua_newtable(L);
+        lua_setfield(L, -2, "jobs");
+
+        lua_setmetatable(L, -2);
+        lua_setglobal(L, "lmr");
+    }
 }
 
 LMR_API int lmr_register(lua_State* L, const lmr_Job j)
 {
     // Save job identifier to Lua registry.
     {
-        lua_pushlightuserdata(L, (void*)KEY_JOB_ID);
-        lua_pushinteger(L, j.job_id);
-        lua_settable(L, LUA_REGISTRYINDEX);
+        lua_getglobal(L, "lmr");
+        lmr_State* state = luaL_checkudata(L, -1, "LMR.state");
+        if (state == NULL) {
+            return LMR_ERRINIT;
+        }
+        state->job_id = j.job_id;
+        state->batch_id = 0;
     }
     // Load job into Lua state and execute it.
     {
@@ -38,8 +66,10 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j)
     // Ensure that the executed job actually called `lmr.job()` with a function
     // as argument.
     {
-        lua_pushfstring(L, "lmr_job_%d", j.job_id);
-        lua_gettable(L, LUA_REGISTRYINDEX);
+        lua_getmetatable(L, -1);
+        lua_getfield(L, -1, "jobs");
+        lua_pushinteger(L, j.job_id);
+        lua_gettable(L, -2);
         if (lua_type(L, -1) != LUA_TFUNCTION) {
             return LMR_ERRNOCALL;
         }
@@ -54,23 +84,24 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch in, lmr_Batch* out)
 
 int lmr_l_register(lua_State* L)
 {
-    if (lua_type(L, 1) != LUA_TFUNCTION) {
-        lua_pushstring(L, "Bad job arguments. Must be [function].");
+    if (lua_type(L, 1) != LUA_TUSERDATA && lua_type(L, 2) != LUA_TFUNCTION) {
+        lua_pushstring(L, "(`LMR.state`, `function`) expected");
         lua_error(L);
     }
     // Load job identifier from registry.
-    lua_Integer job_id;
+    int32_t job_id;
     {
-        lua_pushlightuserdata(L, (void*)KEY_JOB_ID);
-        lua_gettable(L, LUA_REGISTRYINDEX);
-        job_id = lua_tointeger(L, -1);
-        lua_pop(L, 1);
+        const lmr_State* state = luaL_checkudata(L, 1, "LMR.state");
+        luaL_argcheck(L, state != NULL, 1, "`LMR.state` expected");
+        job_id = state->job_id;
     }
     // Save job function to registry.
     {
-        lua_pushfstring(L, "lmr_job_%d", job_id);
-        lua_insert(L, 1);
-        lua_settable(L, LUA_REGISTRYINDEX);
+        lua_getmetatable(L, -2);
+        lua_getfield(L, -1, "jobs");
+        lua_pushinteger(L, job_id);
+        lua_pushvalue(L, -4); // Move function to top of stack.
+        lua_settable(L, -3);
     }
     return 0;
 }

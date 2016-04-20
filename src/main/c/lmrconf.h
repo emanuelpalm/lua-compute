@@ -18,8 +18,9 @@
 #define LMR_ERRERR LUA_ERRERR ///< Runtime error in error handler.
 #define LMR_ERRFILE LUA_ERRFILE ///< File operation failure.
 #define LMR_ERR (LUA_ERRFILE + 100)
-#define LMR_ERRCONFIG (LMR_ERR + 1) ///< Invalid configuration.
-#define LMR_ERRNOCALL (LMR_ERR + 1) ///< Mandatory function call not made.
-#define LMR_ERRNORESULT (LMR_ERR + 2) ///< Failed to return result.
+#define LMR_ERRINIT (LMR_ERR + 1) ///< Use of uninitialized Lua state.
+#define LMR_ERRCONFIG (LMR_ERR + 2) ///< Invalid configuration.
+#define LMR_ERRNOCALL (LMR_ERR + 3) ///< Mandatory function call not made.
+#define LMR_ERRNORESULT (LMR_ERR + 4) ///< Failed to return result.
 
 #endif

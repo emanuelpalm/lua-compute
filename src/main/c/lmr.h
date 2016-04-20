@@ -85,8 +85,8 @@ LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c);
  * The job is safe to destroy at any point after the function returns.
  *
  * Returns `0` (OK), `LMR_ERRRUN`, `LMR_ERRSYNTAX`, `LMR_ERRMEM`, `LMR_ERRERR`,
- * or `LMR_ERRNOCALL`. The last is returned only if the provided job fails to
- * call `lmr:job()` when evaluated.
+ * `LMR_ERRINIT`, or `LMR_ERRNOCALL`. The last is returned only if the provided
+ * job fails to call `lmr:job()` when evaluated.
  */
 LMR_API int lmr_register(lua_State* L, const lmr_Job j);
 
@@ -96,7 +96,7 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j);
  *
  * Both batches are safe to destroy at any point after the function returns.
  *
- * Returns `0` (OK), `LMR_ERRRUN`, `LMR_ERRMEM`, `LMR_ERRERR`, or
+ * Returns `0` (OK), `LMR_ERRRUN`, `LMR_ERRMEM`, `LMR_ERRERR`, `LMR_ERRINIT` or
  * `LMR_ERRNORESULT`. The last is returned only if the job processing the batch
  * fails to return a batch result, in which case `out` is left untouched.
  */
