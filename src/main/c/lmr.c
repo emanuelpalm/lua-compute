@@ -53,6 +53,19 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch in, lmr_Batch* out)
     return -1;
 }
 
-int lmr_l_job(lua_State* L) { return 0; }
+int lmr_l_job(lua_State* L)
+{
+    if (lua_type(L, 1) != LUA_TNUMBER || lua_type(L, 1) != LUA_TFUNCTION) {
+        lua_pushstring(L, "Bad job arguments. Must be [LMR, function].");
+        lua_error(L);
+    }
+    // Save job function, which at this point is at stack index 2, to registry.
+    {
+        lua_pushfstring(L, "lmr_job_%d", lua_tointeger(L, 1));
+        lua_replace(L, 1);
+        lua_settable(L, LUA_REGISTRYINDEX);
+    }
+    return 0;
+}
 
 int lmr_l_log(lua_State* L) { return 0; }
