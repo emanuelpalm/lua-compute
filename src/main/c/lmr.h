@@ -66,7 +66,7 @@ typedef struct {
  * jobs complete.
  */
 typedef struct {
-    uint32_t job_id, batch_id;
+    int32_t job_id, batch_id;
     struct {
         uint8_t* bytes;
         size_t length;
