@@ -3,7 +3,7 @@ PLATFORM_OS     = $(shell uname -s)
 PLATFORM_ARCH   = $(shell uname -m)
 
 ifeq (${PLATFORM_OS},Darwin)
-	PLATFORM_CFLAGS = -I/usr/local/include
+	PLATFORM_CFLAGS = -I/usr/local/include/luajit-2.0
 	PLATFORM_LDFLAGS = -L/usr/local/lib
 	PLATFORM_TEST_LIBS = -lluajit
 	PLATFORM_SOEXT = dylib

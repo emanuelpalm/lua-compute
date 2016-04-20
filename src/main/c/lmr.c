@@ -1,5 +1,3 @@
-#define LUA_COMPAT_MODULE
-
 #include "lmr.h"
 #include "lmrlua.h"
 #include <stdlib.h>
