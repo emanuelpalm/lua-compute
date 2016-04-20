@@ -72,8 +72,15 @@ void test_log(unit_T* T, void* arg)
             .length = 0,
         },
     };
-    unit_assert(T, lmr_register(L, j) == 0);
-    unit_assert(T, lmr_process(L, b_in, &b_out) == LMR_ERRNORESULT);
+    if (lmr_register(L, j) != 0) {
+        unit_failf(T, "[lmr_register] %s", lua_tostring(L, -1));
+    }
+    int status;
+    if ((status = lmr_process(L, b_in, &b_out)) != 0) {
+        unit_failf(T, "[lmr_process] %s", status == 0
+                ? "Returned OK, expected LMR_ERRNORESULT."
+                : lua_tostring(L, -1));
+    }
 
     //{ Since Lua job callback never returned, the out batch must be untouched.
     unit_assert(T, b_out.job_id == 0);
@@ -116,8 +123,15 @@ void test_process(unit_T* T, void* arg)
             .length = 0,
         },
     };
-    unit_assert(T, lmr_register(L, j) == 0);
-    unit_assert(T, lmr_process(L, b_in, &b_out) == 0);
+    if (lmr_register(L, j) != 0) {
+        unit_failf(T, "[lmr_register] %s", lua_tostring(L, -1));
+    }
+    int status;
+    if ((status = lmr_process(L, b_in, &b_out)) != 0) {
+        unit_failf(T, "[lmr_process] %s", status == 0
+                ? "Returned OK, expected LMR_ERRNORESULT."
+                : lua_tostring(L, -1));
+    }
 
     unit_assert(T, b_out.job_id == 2);
     unit_assert(T, b_out.batch_id == 1);
