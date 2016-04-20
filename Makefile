@@ -10,7 +10,11 @@ ifeq (${PLATFORM_OS},Darwin)
 	ifneq ($(filter %64,${PLATFORM_ARCH}),)
 		PLATFORM_TEST_LDFLAGS += -pagezero_size 10000 -image_base 100000000
 	endif
-else
+endif
+ifeq (${PLATFORM_OS},Linux)
+	PLATFORM_CFLAGS = $(shell pkg-config --cflags luajit)
+	PLATFORM_LDFLAGS = $(shell pkg-config --libs-only-L luajit)
+	PLATFORM_TEST_LIBS = $(shell pkg-config --libs-only-l luajit)
 	PLATFORM_SOEXT = so
 endif
 
