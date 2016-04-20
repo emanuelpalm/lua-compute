@@ -1,6 +1,10 @@
 /**
  * Lua Map/Reduce main header.
  *
+ * Its important to note that all of the methods provided have no thread
+ * safety guarantees whatsoever. It is expected that this API is used
+ * exclusively by a single thread at all times.
+ *
  * @file
  */
 #ifndef lmr_h
