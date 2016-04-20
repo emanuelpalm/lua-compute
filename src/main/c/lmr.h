@@ -72,10 +72,8 @@ typedef struct {
 /**
  * Adds LMR library functions to provided lua state, with their behavior
  * customized using provided configuration, if given.
- *
- * Returns `0` (OK), or `LMR_ERRMEM`.
  */
-LMR_API int lmr_openlib(lua_State* L, const lmr_Config* c);
+LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c);
 
 /**
  * Registers provided job in Lua state.

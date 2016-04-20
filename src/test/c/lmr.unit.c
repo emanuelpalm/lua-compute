@@ -47,9 +47,8 @@ void test_log(unit_T* T, void* arg)
 {
     lua_State* L = arg;
 
-    const lmr_Config c = {
-        .log_function = logf,
-    };
+    lmr_openlib(L, &(lmr_Config){.log_function = logf });
+
     const lmr_Job j = {
         .job_id = 1,
         .program = {
@@ -73,7 +72,6 @@ void test_log(unit_T* T, void* arg)
             .length = 0,
         },
     };
-    unit_assert(T, lmr_openlib(L, &c) == 0);
     unit_assert(T, lmr_register(L, j) == 0);
     unit_assert(T, lmr_process(L, b_in, &b_out) == LMR_ERRNORESULT);
 
@@ -93,9 +91,8 @@ void test_process(unit_T* T, void* arg)
 {
     lua_State* L = arg;
 
-    const lmr_Config c = {
-        .log_function = logf,
-    };
+    lmr_openlib(L, &(lmr_Config){.log_function = logf });
+
     const lmr_Job j = {
         .job_id = 2,
         .program = {
@@ -119,7 +116,6 @@ void test_process(unit_T* T, void* arg)
             .length = 0,
         },
     };
-    unit_assert(T, lmr_openlib(L, &c) == 0);
     unit_assert(T, lmr_register(L, j) == 0);
     unit_assert(T, lmr_process(L, b_in, &b_out) == 0);
 

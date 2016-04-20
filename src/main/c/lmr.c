@@ -2,7 +2,7 @@
 #include "lmrlua.h"
 #include <stdlib.h>
 
-LMR_API int lmr_openlib(lua_State* L, const lmr_Config* c) { return -1; }
+LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c) { return -1; }
 
 LMR_API int lmr_register(lua_State* L, const lmr_Job j) { return -1; }
 
