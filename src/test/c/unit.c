@@ -1,7 +1,7 @@
+#include "unit.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "unit.h"
 
 #ifndef UNIT_NO_COLOR
 #define _CLR_BLU "\x1B[34m"
@@ -23,27 +23,30 @@
 #define _FMT_ISSUE(_CLR, str_issue) \
     "\t" _USE_CLR(_CLR, str_issue " %s") " @ %s:%d\n\t\t"
 
-void unit_init(unit_State *u) {
+void unit_init(unit_State* u)
+{
     u->suites.failed = 0;
     u->suites.total = 0;
 }
 
-void unit_exit(unit_State *u) {
+void unit_exit(unit_State* u)
+{
     if (u->suites.failed == 0) {
         exit(EXIT_SUCCESS);
     }
     exit(EXIT_FAILURE);
 }
 
-void _suite_report_success(unit_T *T);
-void _suite_report_skipped(unit_T *T);
-void _suite_report_failure(unit_T *T);
+void _suite_report_success(unit_T* T);
+void _suite_report_skipped(unit_T* T);
+void _suite_report_failure(unit_T* T);
 
-void unit_run_suite(unit_State *u, const char *name, unit_SuiteFunction suite) {
+void unit_run_suite(unit_State* u, const char* name, unit_SuiteFunction suite)
+{
     u->suites.total++;
     printf(_USE_CLR(_CLR_BLU, ">>") " %s\n", name);
 
-    unit_T T = {.test.failures = 0};
+    unit_T T = {.test.failures = 0 };
     if (setjmp(T.jmp_fatal) == 0) {
         suite(&T);
     }
@@ -60,7 +63,8 @@ void unit_run_suite(unit_State *u, const char *name, unit_SuiteFunction suite) {
     putchar('\n');
 }
 
-void _suite_report_success(unit_T *T) {
+void _suite_report_success(unit_T* T)
+{
     // clang-format off
     printf(
         _USE_CLR(_CLR_GRN, "<<")
@@ -70,7 +74,8 @@ void _suite_report_success(unit_T *T) {
     // clang-format on
 }
 
-void _suite_report_skipped(unit_T *T) {
+void _suite_report_skipped(unit_T* T)
+{
     // clang-format off
     printf(
         _USE_CLR(_CLR_YEL, "<<")
@@ -84,7 +89,8 @@ void _suite_report_skipped(unit_T *T) {
     // clang-format on
 }
 
-void _suite_report_failure(unit_T *T) {
+void _suite_report_failure(unit_T* T)
+{
     // clang-format off
     printf(
         _USE_CLR(_CLR_RED, "<<")
@@ -98,7 +104,8 @@ void _suite_report_failure(unit_T *T) {
     // clang-format on
 }
 
-void unit_run_test(unit_T *T, unit_TestFunction t, unit_ProviderFunction p) {
+void unit_run_test(unit_T* T, unit_TestFunction t, unit_ProviderFunction p)
+{
     T->tests.total++;
     if (setjmp(T->jmp_skip) == 0) {
         if (p != NULL) {
@@ -115,7 +122,8 @@ void unit_run_test(unit_T *T, unit_TestFunction t, unit_ProviderFunction p) {
     T->test.failures = 0;
 }
 
-void _unit_failf(unit_T *T, const unit_Ctx *X, const char *fmt, ...) {
+void _unit_failf(unit_T* T, const unit_Ctx* X, const char* fmt, ...)
+{
     printf(_FMT_ISSUE(_CLR_RED, "-- FAIL:"), X->func, X->file, X->line);
 
     T->test.failures++;
@@ -128,7 +136,8 @@ void _unit_failf(unit_T *T, const unit_Ctx *X, const char *fmt, ...) {
     putchar('\n');
 }
 
-void _unit_skipf(unit_T *T, const unit_Ctx *X, const char *fmt, ...) {
+void _unit_skipf(unit_T* T, const unit_Ctx* X, const char* fmt, ...)
+{
     printf(_FMT_ISSUE(_CLR_YEL, "<- SKIP:"), X->func, X->file, X->line);
 
     T->tests.skipped++;
@@ -143,7 +152,8 @@ void _unit_skipf(unit_T *T, const unit_Ctx *X, const char *fmt, ...) {
     longjmp(T->jmp_skip, 1);
 }
 
-void _unit_fatalf(unit_T *T, const unit_Ctx *X, const char *fmt, ...) {
+void _unit_fatalf(unit_T* T, const unit_Ctx* X, const char* fmt, ...)
+{
     printf(_FMT_ISSUE(_CLR_MAG, "<= FATAL:"), X->func, X->file, X->line);
 
     T->tests.failed++;

@@ -1,9 +1,10 @@
 #include "unit.h"
 
 // Test suite function prototypes.
-void suite_lmr(unit_T *T);
+void suite_lmr(unit_T* T);
 
-int main() {
+int main()
+{
     unit_State u;
     unit_init(&u);
 
