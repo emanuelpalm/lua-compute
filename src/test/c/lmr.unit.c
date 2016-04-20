@@ -52,7 +52,7 @@ void test_log(unit_T* T, void* arg)
     const lmr_Job j = {
         .job_id = 1,
         .program = {
-            .lua = "lmr:job(1, function (batch) lmr:log(batch) end)",
+            .lua = "lmr:job(function (batch) lmr:log(batch) end)",
             .length = 44,
         },
     };
@@ -96,7 +96,7 @@ void test_process(unit_T* T, void* arg)
     const lmr_Job j = {
         .job_id = 2,
         .program = {
-            .lua = "lmr:job(2, function (batch) return batch:upper() end)",
+            .lua = "lmr:job(function (batch) return batch:upper() end)",
             .length = 50,
         },
     };
