@@ -4,7 +4,7 @@ PLATFORM_ARCH   = $(shell uname -m)
 
 ifeq (${PLATFORM_OS},Darwin)
 	PLATFORM_CFLAGS = -I/usr/local/include
-	PLATFORM_TEST_LDFLAGS = -L/usr/local/lib
+	PLATFORM_LDFLAGS = -L/usr/local/lib
 	PLATFORM_TEST_LIBS = -lluajit
 	PLATFORM_SOEXT = dylib
 	ifneq ($(filter %64,${PLATFORM_ARCH}),)
@@ -17,20 +17,20 @@ endif
 # Build settings.
 AR              = ar -rcu
 CC              = clang
-CFLAGS          = -std=c99 -Wall -Wpedantic
-LDFLAGS         =
+CFLAGS          = -std=c99 -Wall -Wpedantic ${PLATFORM_CFLAGS}
+LDFLAGS         = ${PLATFORM_LDFLAGS}
 LIBS            =
 RM              = rm -f
 
 DEBUG_AR        = ${AR}
 DEBUG_CC        = ${CC}
-DEBUG_CFLAGS    = ${CFLAGS} -O0 -g ${PLATFORM_CFLAGS}
+DEBUG_CFLAGS    = ${CFLAGS} -O0 -g
 DEBUG_LDFLAGS   = ${LDFLAGS}
 DEBUG_LIBS      = ${LIBS}
 
 RELEASE_AR      = ${AR}
 RELEASE_CC      = ${CC}
-RELEASE_CFLAGS  = ${CFLAGS} -O3 ${PLATFORM_CFLAGS}
+RELEASE_CFLAGS  = ${CFLAGS} -O3
 RELEASE_LDFLAGS = ${LDFLAGS} -Os
 RELEASE_LIBS    = ${LIBS}
 
@@ -84,16 +84,16 @@ test:
 		--no-print-directory
 
 clean:
-	$(foreach F,$(wildcard src/main/c/*.o),${RM} $F)
-	$(foreach F,$(wildcard *.a),${RM} $F)
-	$(foreach F,$(wildcard *.${SOEXT}),${RM} $F)
-	$(foreach F,$(wildcard ${TEST_BIN}),${RM} $F)
-	$(foreach F,$(wildcard src/test/c/*.o),${RM} $F)
+	$(foreach F,$(wildcard src/main/c/*.[do]),${RM} $F;)
+	$(foreach F,$(wildcard *.a),${RM} $F;)
+	$(foreach F,$(wildcard *.${SOEXT}),${RM} $F;)
+	$(foreach F,$(wildcard ${TEST_BIN}),${RM} $F;)
+	$(foreach F,$(wildcard src/test/c/*.[do]),${RM} $F;)
 
 .PHONY: default all debug release test clean
 
 %.${OEXT}:
-	${CC} ${CFLAGS} -c $(@:%.${OEXT}=%.c) -o $@
+	${CC} ${CFLAGS} -c $*.c -o $@
 
 ${LIBA}: ${OFILES}
 	${AR} $@ $^
@@ -105,8 +105,9 @@ ${TEST_BIN}: ${TEST_OFILES}
 	${CC} ${LDFLAGS} ${LIBS} -o $@ $^
 
 # Dependency map.
-src/main/c/lmr.o: src/main/c/lmr.c src/main/c/lmr.h src/main/c/lmrconf.h \
-	src/main/c/lmrlua.h
-src/test/c/unit.o: src/test/c/unit.c src/test/c/unit.h
-src/test/c/main.o: src/test/c/main.c src/test/c/lmr.unit.o src/test/c/unit.o
-src/test/c/lmr.unit.o: src/test/c/lmr.unit.c src/test/c/unit.o
+src/main/c/lmr.${OEXT}: src/main/c/lmr.c src/main/c/lmr.h \
+	src/main/c/lmrconf.h src/main/c/lmrlua.h
+src/test/c/lmr.unit.${OEXT}: src/test/c/lmr.unit.c src/main/c/lmr.h \
+	src/main/c/lmrconf.h src/test/c/unit.h
+src/test/c/main.${OEXT}: src/test/c/main.c src/test/c/unit.h
+src/test/c/unit.${OEXT}: src/test/c/unit.c src/test/c/unit.h
