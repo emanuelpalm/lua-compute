@@ -17,8 +17,8 @@
  * A log entry.
  */
 typedef struct {
-    uint32_t job_id;
-    uint32_t batch_id;
+    int32_t job_id;
+    int32_t batch_id;
     struct {
         char* string;
         size_t length;
@@ -52,7 +52,7 @@ typedef struct {
  * called whenever the job receives a new batch of data to process.
  */
 typedef struct {
-    uint32_t job_id;
+    int32_t job_id;
     struct {
         char* lua;
         size_t length;
