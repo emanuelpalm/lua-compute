@@ -10,11 +10,23 @@
 #include <stdint.h>
 
 /**
+ * A log entry.
+ */
+typedef struct {
+    uint32_t job_id;
+    uint32_t batch_id;
+    struct {
+        char* string;
+        size_t length;
+    } message;
+} lmr_LogEntry;
+
+/**
  * A function used to receive `lmr:log()` calls.
  *
- * Called with `job_id`, `batch_id`, and the logged string.
+ * Provided log entries are destroyed right after a log function returns.
  */
-typedef void (*lmr_LogFunction)(const uint32_t, const uint32_t, const char*);
+typedef void (*lmr_LogFunction)(const lmr_LogEntry* entry);
 
 /**
  * LMR Lua library configuration.

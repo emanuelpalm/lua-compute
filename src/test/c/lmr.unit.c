@@ -5,9 +5,7 @@
 #include <string.h>
 
 //{ Data registered during calls to `logf()`.
-static uint32_t logf_job_id = 0;
-static uint32_t logf_batch_id = 0;
-static const char* logf_s = "";
+static lmr_LogEntry log_entry = {.message.string = "" };
 //}
 
 void provider_lua_state(unit_T* T, unit_TestFunction t)
@@ -31,11 +29,18 @@ void suite_lmr(unit_T* T)
 }
 
 // Used to test `lmr:log()` lua function.
-static void logf(const uint32_t job_id, const uint32_t batch_id, const char* s)
+static void logf(const lmr_LogEntry* entry)
 {
-    logf_job_id = job_id;
-    logf_batch_id = batch_id;
-    logf_s = s;
+    static char message[64];
+    message[sizeof(message) - 1] = '\0';
+
+    log_entry.job_id = entry->job_id;
+    log_entry.batch_id = entry->batch_id;
+    log_entry.message.string = strncpy(
+        message,
+        entry->message.string,
+        sizeof(message) - 1);
+    log_entry.message.length = entry->message.length;
 }
 
 void test_log(unit_T* T, void* arg)
@@ -79,9 +84,9 @@ void test_log(unit_T* T, void* arg)
     unit_assert(T, b_out.data.length == 0);
     //}
 
-    unit_assert(T, logf_job_id == 1);
-    unit_assert(T, logf_batch_id == 2);
-    unit_assert(T, strcmp(logf_s, "hello") == 0);
+    unit_assert(T, log_entry.job_id == 1);
+    unit_assert(T, log_entry.batch_id == 2);
+    unit_assert(T, strcmp(log_entry.message.string, "hello") == 0);
 }
 
 void test_process(unit_T* T, void* arg)
