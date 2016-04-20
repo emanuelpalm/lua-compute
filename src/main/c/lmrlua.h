@@ -10,6 +10,8 @@
 #ifndef lmrlua_h
 #define lmrlua_h
 
+#include <lua.h>
+
 /**
  * Registers new job callback.
  *
