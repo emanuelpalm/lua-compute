@@ -34,13 +34,13 @@ typedef struct {
  * A job is essentially an arbitrary Lua program that is required to call the
  * function `lmr:job(callback)` with a provided callback, which is subsequently
  * called whenever the job receives a new batch of data to process.
- *
- * Instances of `lmr_Job` must to be destroyed using `lmr_freejob()` once no
- * longer used.
  */
 typedef struct {
     uint32_t job_id;
-    char* prog_lua;
+    struct {
+        char* lua;
+        size_t length;
+    } program;
 } lmr_Job;
 
 /**
@@ -48,17 +48,18 @@ typedef struct {
  *
  * Batches are fed as input into jobs, and are also received as output when
  * jobs complete.
- *
- * Instances of `lmr_Batch` must be destroyed using `lmr_freebatch()` once no
- * longer used.
  */
 typedef struct {
     uint32_t job_id, batch_id;
-    uint8_t* data;
+    struct {
+        uint8_t* bytes;
+        size_t length;
+    } data;
 } lmr_Batch;
 
 /**
- * Adds LMR library functions to provided lua state.
+ * Adds LMR library functions to provided lua state, with their behavior
+ * customized using provided configuration, if given.
  *
  * Returns `0` (OK), or `LMR_ERRMEM`.
  */
@@ -86,11 +87,5 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j);
  * fails to call `lmr:report()`, in which case `out` is left untouched.
  */
 LMR_API int lmr_process(lua_State* L, const lmr_Batch in, lmr_Batch* out);
-
-/** Destroys provided job, freeing any resources held. */
-LMR_API void lmr_freejob(lmr_Job j);
-
-/** Destroys provided batch, freeing any resources held. */
-LMR_API void lmr_freebatch(lmr_Batch b);
 
 #endif
