@@ -23,7 +23,6 @@
  * LMR Lua state.
  *
  * @function job
- * @param lmr LMR context reference.
  * @param callback Function called with job batches.
  */
 int lmr_l_job(lua_State* L);
@@ -35,7 +34,6 @@ int lmr_l_job(lua_State* L);
  * some job batch about any occurrence of interest.
  *
  * @function log
- * @param lmr LMR context reference.
  * @param message A Lua string, or a number that is converted to a string.
  */
 int lmr_l_log(lua_State* L);
