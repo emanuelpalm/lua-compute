@@ -1,1 +1,2 @@
 -I/usr/local/include/luajit-2.0
+-I/usr/include/luajit-2.0
