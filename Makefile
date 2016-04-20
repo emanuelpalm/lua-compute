@@ -86,7 +86,7 @@ test:
 clean:
 	$(foreach F,$(wildcard src/main/c/*.o),${RM} $F)
 	$(foreach F,$(wildcard *.a),${RM} $F)
-	$(foreach F,$(wildcard *.so),${RM} $F)
+	$(foreach F,$(wildcard *.${SOEXT}),${RM} $F)
 	$(foreach F,$(wildcard ${TEST_BIN}),${RM} $F)
 	$(foreach F,$(wildcard src/test/c/*.o),${RM} $F)
 
