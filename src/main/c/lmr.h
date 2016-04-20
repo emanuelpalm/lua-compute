@@ -83,8 +83,8 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j);
  * Both batches are safe to destroy at any point after the function returns.
  *
  * Returns `0` (OK), `LMR_ERRRUN`, `LMR_ERRMEM`, `LMR_ERRERR`, or
- * `LMR_ERRREPORT`. The last is returned only if the job processing the batch
- * fails to call `lmr:report()`, in which case `out` is left untouched.
+ * `LMR_ERRNORESULT`. The last is returned only if the job processing the batch
+ * fails to return a batch result, in which case `out` is left untouched.
  */
 LMR_API int lmr_process(lua_State* L, const lmr_Batch in, lmr_Batch* out);
 

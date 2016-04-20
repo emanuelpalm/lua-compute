@@ -20,6 +20,6 @@
 #define LMR_ERR (LUA_ERRFILE + 100)
 #define LMR_ERRCONFIG (LMR_ERR + 1) ///< Invalid configuration.
 #define LMR_ERRNOCALL (LMR_ERR + 1) ///< Mandatory function call not made.
-#define LMR_ERRREPORT (LMR_ERR + 2) ///< Failed to generate report.
+#define LMR_ERRNORESULT (LMR_ERR + 2) ///< Failed to return result.
 
 #endif

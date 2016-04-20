@@ -29,21 +29,6 @@
 int lmr_l_job(lua_State* L);
 
 /**
- * Reports job execution results.
- *
- * Typically, this function would be called when a job has finished processing
- * some batch of data, with the results encoded as a Lua string.
- *
- * This function must be called no more than once by each registered job
- * callback.
- *
- * @function report
- * @param lmr LMR context reference.
- * @param data A Lua string, or a number that is converted to a string.
- */
-int lmr_l_report(lua_State* L);
-
-/**
  * Logs arbitrary string.
  *
  * This function may be called any amount of times to inform whoever provided

@@ -68,9 +68,9 @@ void test_log(unit_T* T, void* arg)
     };
     unit_assert(T, lmr_openlib(L, &c) == 0);
     unit_assert(T, lmr_register(L, j) == 0);
-    unit_assert(T, lmr_process(L, b_in, &b_out) == 0);
+    unit_assert(T, lmr_process(L, b_in, &b_out) == LMR_ERRNORESULT);
 
-    //{ Since `lmr:report()` was never called, the out batch must be untouched.
+    //{ Since Lua job callback never returned, the out batch must be untouched.
     unit_assert(T, b_out.job_id == 0);
     unit_assert(T, b_out.batch_id == 0);
     unit_assert(T, b_out.data.bytes == NULL);
