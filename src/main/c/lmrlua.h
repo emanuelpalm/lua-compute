@@ -24,6 +24,7 @@
  *
  * @function job
  * @param lmr LMR context reference.
+ * @param job_id Job identifier.
  * @param callback Function called with job batches.
  */
 int lmr_l_job(lua_State* L);
