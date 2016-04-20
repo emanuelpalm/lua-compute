@@ -7,7 +7,7 @@ static const char* KEY_JOB_ID = "lmr_job_id";
 LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c)
 {
     static const luaL_Reg functions[] = {
-        {.name = "job", .func = lmr_l_job },
+        {.name = "register", .func = lmr_l_register },
         {.name = "log", .func = lmr_l_log },
         {.name = NULL, .func = NULL },
     };
@@ -52,7 +52,7 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch in, lmr_Batch* out)
     return -1;
 }
 
-int lmr_l_job(lua_State* L)
+int lmr_l_register(lua_State* L)
 {
     if (lua_type(L, 1) != LUA_TFUNCTION) {
         lua_pushstring(L, "Bad job arguments. Must be [function].");

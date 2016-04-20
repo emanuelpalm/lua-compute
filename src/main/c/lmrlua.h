@@ -22,10 +22,10 @@
  * This function must be called exactly once by each job being registered in an
  * LMR Lua state.
  *
- * @function job
+ * @function register
  * @param callback Function called with job batches.
  */
-int lmr_l_job(lua_State* L);
+int lmr_l_register(lua_State* L);
 
 /**
  * Logs arbitrary string.
