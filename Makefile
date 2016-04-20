@@ -4,7 +4,8 @@ PLATFORM_ARCH   = $(shell uname -m)
 
 ifeq (${PLATFORM_OS},Darwin)
 	PLATFORM_CFLAGS = -I/usr/local/include
-	PLATFORM_TEST_LDFLAGS = -L/usr/local/lib -lluajit
+	PLATFORM_TEST_LDFLAGS = -L/usr/local/lib
+	PLATFORM_TEST_LIBS = -lluajit
 	PLATFORM_SOEXT = dylib
 	ifneq ($(filter %64,${PLATFORM_ARCH}),)
 		PLATFORM_TEST_LDFLAGS += -pagezero_size 10000 -image_base 100000000
@@ -18,21 +19,25 @@ AR              = ar -rcu
 CC              = clang
 CFLAGS          = -std=c99 -Wall -Wpedantic
 LDFLAGS         =
+LIBS            =
 RM              = rm -f
 
 DEBUG_AR        = ${AR}
 DEBUG_CC        = ${CC}
 DEBUG_CFLAGS    = ${CFLAGS} -O0 -g ${PLATFORM_CFLAGS}
 DEBUG_LDFLAGS   = ${LDFLAGS}
+DEBUG_LIBS      = ${LIBS}
 
 RELEASE_AR      = ${AR}
 RELEASE_CC      = ${CC}
 RELEASE_CFLAGS  = ${CFLAGS} -O3 ${PLATFORM_CFLAGS}
 RELEASE_LDFLAGS = ${LDFLAGS} -Os
+RELEASE_LIBS    = ${LIBS}
 
 TEST_CC         = ${DEBUG_CC}
 TEST_CFLAGS     = ${DEBUG_CFLAGS}
 TEST_LDFLAGS    = ${DEBUG_LDFLAGS} ${PLATFORM_TEST_LDFLAGS}
+TEST_LIBS       = ${DEBUG_LIBS} ${PLATFORM_TEST_LIBS}
 
 OEXT            = o
 SOEXT           = ${PLATFORM_SOEXT}
@@ -59,23 +64,24 @@ all: debug release test
 
 debug:
 	@${MAKE} ${DEBUG_LIBA} LIBA="${DEBUG_LIBA}" CC="${DEBUG_CC}" \
-		CFLAGS="${DEBUG_CFLAGS}" LDFLAGS="${DEBUG_LDFLAGS}" OEXT="debug.o" \
-		--no-print-directory
+		CFLAGS="${DEBUG_CFLAGS}" LDFLAGS="${DEBUG_LDFLAGS}" \
+		LIBS="${DEBUG_LIBS}" OEXT="debug.o" --no-print-directory
 	@${MAKE} ${DEBUG_LIBSO} LIBSO="${DEBUG_LIBSO}" CC="${DEBUG_CC}" \
 		CFLAGS="${DEBUG_CFLAGS} -fPIC" LDFLAGS="${DEBUG_LDFLAGS}" \
-		OEXT="debug.pic.o" --no-print-directory
+		LIBS="${DEBUG_LIBS}" OEXT="debug.pic.o" --no-print-directory
 
 release:
 	@${MAKE} ${RELEASE_LIBA} LIBA="${RELEASE_LIBA}" CC="${RELEASE_CC}" \
 		CFLAGS="${RELEASE_CFLAGS}" LDFLAGS="${RELEASE_LDFLAGS}" \
-		--no-print-directory
+		LIBS="${RELEASE_LIBS}" --no-print-directory
 	@${MAKE} ${RELEASE_LIBSO} LIBSO="${RELEASE_LIBSO}" CC="${RELEASE_CC}" \
 		CFLAGS="${RELEASE_CFLAGS} -fPIC" LDFLAGS="${RELEASE_LDFLAGS}" \
-		OEXT="pic.o" --no-print-directory
+		LIBS="${RELEASE_LIBS}" OEXT="pic.o" --no-print-directory
 
 test:
 	@${MAKE} ${TEST_BIN} CC="${TEST_CC}" CFLAGS="${TEST_CFLAGS}" \
-		LDFLAGS="${TEST_LDFLAGS}" OEXT="debug.o" --no-print-directory
+		LDFLAGS="${TEST_LDFLAGS}" LIBS="${TEST_LIBS}" OEXT="debug.o" \
+		--no-print-directory
 
 clean:
 	$(foreach F,$(wildcard src/main/c/*.o),${RM} $F)
@@ -93,10 +99,10 @@ ${LIBA}: ${OFILES}
 	${AR} $@ $^
 
 ${LIBSO}: ${OFILES}
-	${CC} -shared ${LDFLAGS} -o $@ $^
+	${CC} -shared ${LDFLAGS} ${LIBS} -o $@ $^
 
 ${TEST_BIN}: ${TEST_OFILES}
-	${CC} ${LDFLAGS} -o $@ $^
+	${CC} ${LDFLAGS} ${LIBS} -o $@ $^
 
 # Dependency map.
 src/main/c/lmr.o: src/main/c/lmr.c src/main/c/lmr.h src/main/c/lmrconf.h \
