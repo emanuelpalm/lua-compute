@@ -13,26 +13,26 @@
 #include "lmrconf.h"
 #include <stdint.h>
 
-/**
- * LMR log entry.
- *
- * Provided when receiving Lua `lmr:log()` calls.
- */
-typedef struct {
-    int32_t job_id;
-    int32_t batch_id;
-    struct {
-        const char* string;
-        size_t length;
-    } message;
-} lmr_LogEntry;
+typedef struct lmr_Config lmr_Config;
+typedef struct lmr_Job lmr_Job;
+typedef struct lmr_Batch lmr_Batch;
+typedef struct lmr_LogEntry lmr_LogEntry;
 
 /**
  * Function used to receive `lmr:log()` calls.
  *
- * Provided log entries are destroyed right after a log function returns.
+ * Provided `entry` is only guaranteed to point to valid memory during the
+ * invocation of the function.
  */
 typedef void (*lmr_LogFunction)(void* context, const lmr_LogEntry* entry);
+
+/**
+ * Function used to receive batch processing results.
+ *
+ * Provided `result` is only guaranteed to point to valid memory during the
+ * invocation of the function.
+ */
+typedef void (*lmr_ResultFunction)(void* context, const lmr_Batch* result);
 
 /**
  * Closure holding some arbitrary context pointer and a function for
@@ -40,10 +40,21 @@ typedef void (*lmr_LogFunction)(void* context, const lmr_LogEntry* entry);
  *
  * When `function` is called, the `context` should be provided as argument.
  */
-typedef struct {
+typedef struct lmr_LogClosure {
     void* context;
     lmr_LogFunction function;
 } lmr_LogClosure;
+
+/**
+ * Closure holding some arbitrary context pointer and a function for receiving
+ * batch processing results.
+ *
+ * When `function` is called, the `context` should be provided as argument.
+ */
+typedef struct lmr_ResultClosure {
+    void* context;
+    lmr_ResultFunction function;
+} lmr_ResultClosure;
 
 /**
  * LMR Lua library configuration.
@@ -51,10 +62,10 @@ typedef struct {
  * Provided when initializing an LMR Lua context using `lmr_openlib()` in order
  * to configure LMR behavior.
  */
-typedef struct {
+struct lmr_Config {
     /// Log closure used when forwarding `lmr:log()` calls. May be NULL.
     lmr_LogClosure closure_log;
-} lmr_Config;
+};
 
 /**
  * Job definition, containing a job ID and a lua program able to process data
@@ -64,13 +75,13 @@ typedef struct {
  * function `lmr:job(callback)` with a provided callback, which is subsequently
  * called whenever the job receives a new batch of data to process.
  */
-typedef struct {
+struct lmr_Job {
     int32_t job_id;
     struct {
         char* lua;
         size_t length;
     } program;
-} lmr_Job;
+};
 
 /**
  * A job batch, containing a job ID, a batch ID, and arbitrary data.
@@ -78,32 +89,27 @@ typedef struct {
  * Batches are fed as input into jobs, and are also received as output when
  * jobs complete.
  */
-typedef struct {
+struct lmr_Batch {
     int32_t job_id, batch_id;
     struct {
         uint8_t* bytes;
         size_t length;
     } data;
-} lmr_Batch;
+};
 
 /**
- * Function used to receive batch processing results.
+ * LMR log entry.
  *
- * Provided `result` is only guaranteed to point to valid memory during the
- * invocation of this function.
+ * Provided when receiving Lua `lmr:log()` calls.
  */
-typedef void (*lmr_ResultFunction)(void* context, const lmr_Batch* result);
-
-/**
- * Closure holding some arbitrary context pointer and a function for receiving
- * batch processing results.
- *
- * When `function` is called, the `context` should be provided as argument.
- */
-typedef struct {
-    void* context;
-    lmr_ResultFunction function;
-} lmr_ResultClosure;
+struct lmr_LogEntry {
+    int32_t job_id;
+    int32_t batch_id;
+    struct {
+        const char* string;
+        size_t length;
+    } message;
+};
 
 /**
  * Adds LMR library functions to provided lua state, with their behavior
