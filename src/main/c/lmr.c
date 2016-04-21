@@ -20,7 +20,9 @@ LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c)
         lmr_State* state = lua_newuserdata(L, sizeof(lmr_State));
         state->batch_id = 0;
         state->job_id = 0;
-        state->log_function = c->log_function;
+        if (c != NULL) {
+            state->log_function = c->log_function;
+        }
         luaL_newmetatable(L, "LMR.state");
 
         // Add LMR Lua methods to state object.
