@@ -19,7 +19,7 @@ $ make all
 
 OS X users should note that it is assumed that all libraries and headers are
 available via the `/usr/local` prefix. The prefix is used by [Homebrew][brew],
-which provides convenient way to install the required headers and libraries.
+which provides a convenient way to install the required headers and libraries.
 
 [brew]: http://brew.sh/
 
