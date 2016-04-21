@@ -137,4 +137,7 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j);
  */
 LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ClosureBatch c);
 
+/** Returns string representation of provided LMR error code. */
+LMR_API const char* lmr_errstr(const int err);
+
 #endif

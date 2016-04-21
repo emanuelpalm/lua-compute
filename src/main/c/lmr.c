@@ -139,6 +139,28 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ClosureBatch c)
     return status;
 }
 
+LMR_API const char* lmr_errstr(const int err)
+{
+    switch (err) {
+    case LMR_ERRRUN:
+        return "LMR: Lua runtime error.";
+    case LMR_ERRSYNTAX:
+        return "LMR: Lua syntax error.";
+    case LMR_ERRMEM:
+        return "LMR: Memory allocation failure.";
+    case LMR_ERRERR:
+        return "LMR: Error in Lua error handler.";
+    case LMR_ERRINIT:
+        return "LMR: Lua context not setup with LMR.";
+    case LMR_ERRNOCALL:
+        return "LMR: `lmr:register()` never called.";
+    case LMR_ERRNORESULT:
+        return "LMR: No result produced.";
+    default:
+        return "?";
+    }
+}
+
 int lmr_l_register(lua_State* L)
 {
     if (lua_type(L, 1) != LUA_TUSERDATA || lua_type(L, 2) != LUA_TFUNCTION) {
