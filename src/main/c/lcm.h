@@ -3,7 +3,7 @@
  *
  * Its important to note that the library provides no thread safety guarantees
  * whatsoever. If wishing to use the library in a multi-threaded setting, make
- * sure that no more than one thread access each used Lua context.
+ * sure that no more than one thread accesses each used Lua context.
  *
  * @file
  */
