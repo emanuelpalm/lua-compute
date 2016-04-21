@@ -20,7 +20,7 @@ typedef struct {
     int32_t job_id;
     int32_t batch_id;
     struct {
-        char* string;
+        const char* string;
         size_t length;
     } message;
 } lmr_LogEntry;
