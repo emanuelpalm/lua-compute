@@ -16,7 +16,7 @@ typedef struct {
 
 LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c)
 {
-    // Add global LMR state object.
+    // Create global LMR state object.
     {
         lmr_State* state = lua_newuserdata(L, sizeof(lmr_State));
         state->batch_id = 0;
@@ -24,8 +24,10 @@ LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c)
         if (c != NULL) {
             state->closure_log = c->closure_log;
         }
-        luaL_newmetatable(L, "LMR.state");
-
+    }
+    // Attach Lua meta table to state object.
+    luaL_newmetatable(L, "LMR.state");
+    {
         // Add LMR Lua methods to state object.
         lua_newtable(L);
         {
@@ -40,10 +42,11 @@ LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c)
         // Create jobs table.
         lua_newtable(L);
         lua_setfield(L, -2, "jobs");
-
-        lua_setmetatable(L, -2);
-        lua_setglobal(L, "lmr");
     }
+    lua_setmetatable(L, -2);
+
+    // Bind state object to global Lua variable.
+    lua_setglobal(L, "lmr");
 }
 
 LMR_API int lmr_register(lua_State* L, const lmr_Job j)
