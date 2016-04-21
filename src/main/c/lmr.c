@@ -126,9 +126,8 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch in, lmr_Batch* out)
 
 int lmr_l_register(lua_State* L)
 {
-    if (lua_type(L, 1) != LUA_TUSERDATA && lua_type(L, 2) != LUA_TFUNCTION) {
-        lua_pushstring(L, "(`LMR.state`, `function`) expected");
-        lua_error(L);
+    if (lua_type(L, 1) != LUA_TUSERDATA || lua_type(L, 2) != LUA_TFUNCTION) {
+        luaL_error(L, "Bad arguments. (`LMR.state`, `function`) expected.");
     }
     // Load job identifier from registry.
     int32_t job_id;
