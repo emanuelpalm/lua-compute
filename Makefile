@@ -58,7 +58,7 @@ DEBUG_LIBSO     = $(LIBSO:%.${SOEXT}=%.debug.${SOEXT})
 RELEASE_LIBA    = ${LIBA}
 RELEASE_LIBSO   = ${LIBSO}
 
-TEST_BIN        = lmr-tests.out
+TEST_BIN        = lcm-tests.out
 TEST_CFILES     = ${CFILES} $(wildcard src/test/c/*.c)
 TEST_OFILES     = $(TEST_CFILES:%.c=%.${OEXT})
 
@@ -109,9 +109,9 @@ ${TEST_BIN}: ${TEST_OFILES}
 	${CC} ${LDFLAGS} ${LIBS} -o $@ $^
 
 # Dependency map.
-src/main/c/lmr.${OEXT}: src/main/c/lmr.c src/main/c/lmr.h \
-	src/main/c/lmrconf.h src/main/c/lmrlua.h
-src/test/c/lmr.unit.${OEXT}: src/test/c/lmr.unit.c src/main/c/lmr.h \
-	src/main/c/lmrconf.h src/test/c/unit.h
+src/main/c/lcm.${OEXT}: src/main/c/lcm.c src/main/c/lcm.h \
+	src/main/c/lcmconf.h src/main/c/lcmlua.h
+src/test/c/lcm.unit.${OEXT}: src/test/c/lcm.unit.c src/main/c/lcm.h \
+	src/main/c/lcmconf.h src/test/c/unit.h
 src/test/c/main.${OEXT}: src/test/c/main.c src/test/c/unit.h
 src/test/c/unit.${OEXT}: src/test/c/unit.c src/test/c/unit.h

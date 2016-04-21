@@ -1,24 +1,24 @@
-#include "lmr.h"
-#include "lmrlua.h"
+#include "lcm.h"
+#include "lcmlua.h"
 #include <lauxlib.h>
 #include <stdlib.h>
 
 /**
- * LMR state object.
+ * LCM state object.
  *
- * Makes LMR context data available to LMR Lua/C functions.
+ * Makes LCM context data available to LCM Lua/C functions.
  */
 typedef struct {
     int32_t job_id;
     int32_t batch_id;
-    lmr_ClosureLog closure_log;
-} lmr_State;
+    lcm_ClosureLog closure_log;
+} lcm_State;
 
-LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c)
+LCM_API void lcm_openlib(lua_State* L, const lcm_Config* c)
 {
-    // Create global LMR state object.
+    // Create global LCM state object.
     {
-        lmr_State* state = lua_newuserdata(L, sizeof(lmr_State));
+        lcm_State* state = lua_newuserdata(L, sizeof(lcm_State));
         state->batch_id = 0;
         state->job_id = 0;
         if (c != NULL) {
@@ -26,15 +26,15 @@ LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c)
         }
     }
     // Attach Lua meta table to state object.
-    luaL_newmetatable(L, "LMR.state");
+    luaL_newmetatable(L, "LCM.state");
     {
-        // Add LMR Lua methods to state object.
+        // Add LCM Lua methods to state object.
         lua_newtable(L);
         {
-            lua_pushcfunction(L, lmr_l_register);
+            lua_pushcfunction(L, lcm_l_register);
             lua_setfield(L, -2, "register");
 
-            lua_pushcfunction(L, lmr_l_log);
+            lua_pushcfunction(L, lcm_l_log);
             lua_setfield(L, -2, "log");
         }
         lua_setfield(L, -2, "__index");
@@ -46,18 +46,18 @@ LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c)
     lua_setmetatable(L, -2);
 
     // Bind state object to global Lua variable.
-    lua_setglobal(L, "lmr");
+    lua_setglobal(L, "lcm");
 }
 
-LMR_API int lmr_register(lua_State* L, const lmr_Job j)
+LCM_API int lcm_register(lua_State* L, const lcm_Job j)
 {
     // Save job identifier to Lua registry.
     {
-        lua_getglobal(L, "lmr");
+        lua_getglobal(L, "lcm");
         if (lua_type(L, -1) != LUA_TUSERDATA) {
-            return LMR_ERRINIT;
+            return LCM_ERRINIT;
         }
-        lmr_State* state = luaL_checkudata(L, -1, "LMR.state");
+        lcm_State* state = luaL_checkudata(L, -1, "LCM.state");
         state->job_id = j.job_id;
         state->batch_id = 0;
         lua_pop(L, 1);
@@ -68,39 +68,39 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j)
         const size_t size = j.program.length;
 
         int status;
-        if ((status = luaL_loadbuffer(L, buffer, size, "lmr_job")) != 0) {
+        if ((status = luaL_loadbuffer(L, buffer, size, "lcm_job")) != 0) {
             return status;
         }
         if ((status = lua_pcall(L, 0, 0, 0)) != 0) {
             return status;
         }
     }
-    // Ensure that the executed job actually called `lmr:job()` with a function
+    // Ensure that the executed job actually called `lcm:job()` with a function
     // as argument.
     {
-        lua_getglobal(L, "lmr");
+        lua_getglobal(L, "lcm");
         luaL_getmetafield(L, -1, "jobs");
         lua_pushinteger(L, j.job_id);
         lua_gettable(L, -2);
         const int status = lua_type(L, -1);
         lua_pop(L, 3);
         if (status != LUA_TFUNCTION) {
-            return LMR_ERRNOCALL;
+            return LCM_ERRNOCALL;
         }
     }
     return 0;
 }
 
-LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ClosureBatch c)
+LCM_API int lcm_process(lua_State* L, const lcm_Batch b, lcm_ClosureBatch c)
 {
-    // Get and setup LMR context object.
-    lmr_State* state;
+    // Get and setup LCM context object.
+    lcm_State* state;
     {
-        lua_getglobal(L, "lmr");
+        lua_getglobal(L, "lcm");
         if (lua_type(L, -1) != LUA_TUSERDATA) {
-            return LMR_ERRINIT;
+            return LCM_ERRINIT;
         }
-        state = luaL_checkudata(L, -1, "LMR.state");
+        state = luaL_checkudata(L, -1, "LCM.state");
         state->job_id = b.job_id;
         state->batch_id = b.batch_id;
     }
@@ -117,12 +117,12 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ClosureBatch c)
         status = lua_pcall(L, 1, 1, 0);
         if (status == 0 && lua_type(L, -1) != LUA_TSTRING) {
             lua_pushliteral(L, "Must return `string`.");
-            status = LMR_ERRNORESULT;
+            status = LCM_ERRNORESULT;
         }
     }
     // Handle job results.
     if (status == 0) {
-        lmr_Batch r = {.job_id = b.job_id, .batch_id = b.batch_id };
+        lcm_Batch r = {.job_id = b.job_id, .batch_id = b.batch_id };
         r.data.bytes = (uint8_t*)lua_tolstring(L, -1, &r.data.length);
         c.function(c.context, &r);
 
@@ -134,37 +134,37 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ClosureBatch c)
     return status;
 }
 
-LMR_API const char* lmr_errstr(const int err)
+LCM_API const char* lcm_errstr(const int err)
 {
     switch (err) {
-    case LMR_ERRRUN:
-        return "LMR: Lua runtime error.";
-    case LMR_ERRSYNTAX:
-        return "LMR: Lua syntax error.";
-    case LMR_ERRMEM:
-        return "LMR: Memory allocation failure.";
-    case LMR_ERRERR:
-        return "LMR: Error in Lua error handler.";
-    case LMR_ERRINIT:
-        return "LMR: Lua context not setup with LMR.";
-    case LMR_ERRNOCALL:
-        return "LMR: `lmr:register()` never called.";
-    case LMR_ERRNORESULT:
-        return "LMR: No result produced.";
+    case LCM_ERRRUN:
+        return "LCM: Lua runtime error.";
+    case LCM_ERRSYNTAX:
+        return "LCM: Lua syntax error.";
+    case LCM_ERRMEM:
+        return "LCM: Memory allocation failure.";
+    case LCM_ERRERR:
+        return "LCM: Error in Lua error handler.";
+    case LCM_ERRINIT:
+        return "LCM: Lua context not setup with LCM.";
+    case LCM_ERRNOCALL:
+        return "LCM: `lcm:register()` never called.";
+    case LCM_ERRNORESULT:
+        return "LCM: No result produced.";
     default:
         return "?";
     }
 }
 
-int lmr_l_register(lua_State* L)
+int lcm_l_register(lua_State* L)
 {
     if (lua_type(L, 1) != LUA_TUSERDATA || lua_type(L, 2) != LUA_TFUNCTION) {
-        luaL_error(L, "Bad arguments. (`LMR.state`, `function`) expected.");
+        luaL_error(L, "Bad arguments. (`LCM.state`, `function`) expected.");
     }
     // Load job identifier from registry.
     int32_t job_id;
     {
-        const lmr_State* state = luaL_checkudata(L, 1, "LMR.state");
+        const lcm_State* state = luaL_checkudata(L, 1, "LCM.state");
         job_id = state->job_id;
     }
     // Save job function to registry.
@@ -177,17 +177,17 @@ int lmr_l_register(lua_State* L)
     return 0;
 }
 
-int lmr_l_log(lua_State* L)
+int lcm_l_log(lua_State* L)
 {
-    const lmr_State* state = luaL_checkudata(L, 1, "LMR.state");
+    const lcm_State* state = luaL_checkudata(L, 1, "LCM.state");
     size_t message_length;
     const char* message = luaL_checklstring(L, 2, &message_length);
 
-    const lmr_ClosureLog c = state->closure_log;
+    const lcm_ClosureLog c = state->closure_log;
     if (c.function != NULL) {
         c.function(
             c.context,
-            &(lmr_LogEntry){
+            &(lcm_LogEntry){
                 .job_id = state->job_id,
                 .batch_id = state->batch_id,
                 .message = {.string = message, .length = message_length },

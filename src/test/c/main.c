@@ -1,7 +1,7 @@
 #include "unit.h"
 
 // Test suite function prototypes.
-void suite_lmr(unit_T* T);
+void suite_lcm(unit_T* T);
 
 int main()
 {
@@ -9,7 +9,7 @@ int main()
     unit_init(&u);
 
     // Test suite invocations.
-    unit_run_suite(&u, "lmr", suite_lmr);
+    unit_run_suite(&u, "lcm", suite_lcm);
 
     unit_exit(&u);
 }

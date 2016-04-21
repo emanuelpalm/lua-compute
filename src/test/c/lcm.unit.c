@@ -1,4 +1,4 @@
-#include "../../main/c/lmr.h"
+#include "../../main/c/lcm.h"
 #include "unit.h"
 #include <lauxlib.h>
 #include <lua.h>
@@ -22,26 +22,26 @@ void test_log(unit_T* T, void* arg);
 void test_process(unit_T* T, void* arg);
 //}
 
-void suite_lmr(unit_T* T)
+void suite_lcm(unit_T* T)
 {
     unit_run_test(T, test_log, provider_lua_state);
     unit_run_test(T, test_process, provider_lua_state);
 }
 
 //{ Callbacks used by test cases.
-static void f_log(void* context, const lmr_LogEntry* entry);
-static void f_batch(void* context, const lmr_Batch* batch);
+static void f_log(void* context, const lcm_LogEntry* entry);
+static void f_batch(void* context, const lcm_Batch* batch);
 //}
 
 void test_log(unit_T* T, void* arg)
 {
     lua_State* L = arg;
 
-    // Setup LMR.
-    lmr_LogEntry result_log = {.job_id = 0 };
+    // Setup LCM.
+    lcm_LogEntry result_log = {.job_id = 0 };
     {
-        lmr_openlib(L,
-            &(lmr_Config){
+        lcm_openlib(L,
+            &(lcm_Config){
                 .closure_log = {
                     .context = &result_log,
                     .function = f_log,
@@ -50,26 +50,26 @@ void test_log(unit_T* T, void* arg)
     }
     // Register job.
     {
-        const lmr_Job j = {
+        const lcm_Job j = {
             .job_id = 1,
             .program = {
-                .lua = "lmr:register(function (batch)\n"
-                       "  lmr:log(batch)\n"
+                .lua = "lcm:register(function (batch)\n"
+                       "  lcm:log(batch)\n"
                        "end)",
                 .length = 51,
             },
         };
-        const int status = lmr_register(L, j);
+        const int status = lcm_register(L, j);
         if (status != 0) {
-            unit_failf(T, "[lmr_register] %s\n\t\t\t%s",
-                lmr_errstr(status),
+            unit_failf(T, "[lcm_register] %s\n\t\t\t%s",
+                lcm_errstr(status),
                 lua_tostring(L, -1));
         }
     }
     // Process batch using registered job.
-    lmr_Batch result_batch = {.job_id = 0 };
+    lcm_Batch result_batch = {.job_id = 0 };
     {
-        const lmr_Batch input_batch = {
+        const lcm_Batch input_batch = {
             .job_id = 1,
             .batch_id = 2,
             .data = {
@@ -77,16 +77,16 @@ void test_log(unit_T* T, void* arg)
                 .length = 5,
             },
         };
-        const lmr_ClosureBatch result_closure = {
+        const lcm_ClosureBatch result_closure = {
             .context = &result_batch,
             .function = f_batch,
         };
-        const int status = lmr_process(L, input_batch, result_closure);
-        if (status != LMR_ERRNORESULT) {
-            unit_failf(T, "[lmr_process] %s\n\t\t\t%s",
-                lmr_errstr(status),
+        const int status = lcm_process(L, input_batch, result_closure);
+        if (status != LCM_ERRNORESULT) {
+            unit_failf(T, "[lcm_process] %s\n\t\t\t%s",
+                lcm_errstr(status),
                 status == 0
-                    ? "Returned OK, expected LMR_ERRNORESULT."
+                    ? "Returned OK, expected LCM_ERRNORESULT."
                     : lua_tostring(L, -1));
         }
     }
@@ -112,33 +112,33 @@ void test_process(unit_T* T, void* arg)
 {
     lua_State* L = arg;
 
-    // Setup LMR.
+    // Setup LCM.
     {
         luaL_openlibs(L);
-        lmr_openlib(L, NULL);
+        lcm_openlib(L, NULL);
     }
     // Register job.
     {
-        const lmr_Job j = {
+        const lcm_Job j = {
             .job_id = 2,
             .program = {
-                .lua = "lmr:register(function (batch)\n"
+                .lua = "lcm:register(function (batch)\n"
                        "  return batch:upper()\n"
                        "end)",
                 .length = 57,
             },
         };
-        const int status = lmr_register(L, j);
+        const int status = lcm_register(L, j);
         if (status != 0) {
-            unit_failf(T, "[lmr_register] %s\n\t\t\t%s",
-                lmr_errstr(status),
+            unit_failf(T, "[lcm_register] %s\n\t\t\t%s",
+                lcm_errstr(status),
                 lua_tostring(L, -1));
         }
     }
     // Process batch using registered job.
-    lmr_Batch result_batch = {.job_id = 0 };
+    lcm_Batch result_batch = {.job_id = 0 };
     {
-        const lmr_Batch input_batch = {
+        const lcm_Batch input_batch = {
             .job_id = 2,
             .batch_id = 1,
             .data = {
@@ -146,14 +146,14 @@ void test_process(unit_T* T, void* arg)
                 .length = 5,
             },
         };
-        const lmr_ClosureBatch result_closure = {
+        const lcm_ClosureBatch result_closure = {
             .context = &result_batch,
             .function = f_batch,
         };
-        const int status = lmr_process(L, input_batch, result_closure);
+        const int status = lcm_process(L, input_batch, result_closure);
         if (status != 0) {
-            unit_failf(T, "[lmr_process] %s\n\t\t\t%s",
-                lmr_errstr(status),
+            unit_failf(T, "[lcm_process] %s\n\t\t\t%s",
+                lcm_errstr(status),
                 lua_tostring(L, -1));
         }
     }
@@ -167,9 +167,9 @@ void test_process(unit_T* T, void* arg)
     }
 }
 
-static void f_log(void* context, const lmr_LogEntry* entry)
+static void f_log(void* context, const lcm_LogEntry* entry)
 {
-    lmr_LogEntry* result = context;
+    lcm_LogEntry* result = context;
 
     static char message[64];
     message[sizeof(message) - 1] = '\0';
@@ -182,9 +182,9 @@ static void f_log(void* context, const lmr_LogEntry* entry)
     result->message.length = length;
 }
 
-static void f_batch(void* context, const lmr_Batch* batch)
+static void f_batch(void* context, const lcm_Batch* batch)
 {
-    lmr_Batch* result = context;
+    lcm_Batch* result = context;
 
     static char data[64];
     data[sizeof(data) - 1] = '\0';

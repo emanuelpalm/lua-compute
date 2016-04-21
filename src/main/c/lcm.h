@@ -1,5 +1,5 @@
 /**
- * Lua Map/Reduce main header.
+ * Lua/compute main header.
  *
  * Its important to note that the library provides no thread safety guarantees
  * whatsoever. If wishing to use the library in a multi-threaded setting, make
@@ -7,24 +7,24 @@
  *
  * @file
  */
-#ifndef lmr_h
-#define lmr_h
+#ifndef lcm_h
+#define lcm_h
 
-#include "lmrconf.h"
+#include "lcmconf.h"
 #include <stdint.h>
 
-typedef struct lmr_Config lmr_Config;
-typedef struct lmr_Job lmr_Job;
-typedef struct lmr_Batch lmr_Batch;
-typedef struct lmr_LogEntry lmr_LogEntry;
+typedef struct lcm_Config lcm_Config;
+typedef struct lcm_Job lcm_Job;
+typedef struct lcm_Batch lcm_Batch;
+typedef struct lcm_LogEntry lcm_LogEntry;
 
 /**
- * Function used to receive `lmr:log()` calls.
+ * Function used to receive `lcm:log()` calls.
  *
  * Provided `entry` is only guaranteed to point to valid memory during the
  * invocation of the function.
  */
-typedef void (*lmr_FunctionLog)(void* context, const lmr_LogEntry* entry);
+typedef void (*lcm_FunctionLog)(void* context, const lcm_LogEntry* entry);
 
 /**
  * Function used to receive batch processing results.
@@ -32,18 +32,18 @@ typedef void (*lmr_FunctionLog)(void* context, const lmr_LogEntry* entry);
  * Provided `result` is only guaranteed to point to valid memory during the
  * invocation of the function.
  */
-typedef void (*lmr_FunctionBatch)(void* context, const lmr_Batch* result);
+typedef void (*lcm_FunctionBatch)(void* context, const lcm_Batch* result);
 
 /**
  * Closure holding some arbitrary context pointer and a function for
- * `lmr:log()` calls.
+ * `lcm:log()` calls.
  *
  * When `function` is called, the `context` should be provided as argument.
  */
-typedef struct lmr_ClosureLog {
+typedef struct lcm_ClosureLog {
     void* context;
-    lmr_FunctionLog function;
-} lmr_ClosureLog;
+    lcm_FunctionLog function;
+} lcm_ClosureLog;
 
 /**
  * Closure holding some arbitrary context pointer and a function for receiving
@@ -51,17 +51,17 @@ typedef struct lmr_ClosureLog {
  *
  * When `function` is called, the `context` should be provided as argument.
  */
-typedef struct lmr_ClosureBatch {
+typedef struct lcm_ClosureBatch {
     void* context;
-    lmr_FunctionBatch function;
-} lmr_ClosureBatch;
+    lcm_FunctionBatch function;
+} lcm_ClosureBatch;
 
 /**
- * LMR Lua library configuration.
+ * LCM Lua library configuration.
  */
-struct lmr_Config {
-    /// Log closure used when forwarding `lmr:log()` calls. May be NULL.
-    lmr_ClosureLog closure_log;
+struct lcm_Config {
+    /// Log closure used when forwarding `lcm:log()` calls. May be NULL.
+    lcm_ClosureLog closure_log;
 };
 
 /**
@@ -69,10 +69,10 @@ struct lmr_Config {
  * batches.
  *
  * A job is essentially an arbitrary Lua program that is required to call the
- * function `lmr:job(callback)` with a provided callback, which is subsequently
+ * function `lcm:job(callback)` with a provided callback, which is subsequently
  * called whenever the job receives a new batch of data to process.
  */
-struct lmr_Job {
+struct lcm_Job {
     int32_t job_id;
     struct {
         char* lua;
@@ -86,7 +86,7 @@ struct lmr_Job {
  * Batches are fed as input into jobs, and are also received as output when
  * jobs complete.
  */
-struct lmr_Batch {
+struct lcm_Batch {
     int32_t job_id, batch_id;
     struct {
         uint8_t* bytes;
@@ -95,11 +95,11 @@ struct lmr_Batch {
 };
 
 /**
- * LMR log entry.
+ * LCM log entry.
  *
- * Provided when receiving Lua `lmr:log()` calls.
+ * Provided when receiving Lua `lcm:log()` calls.
  */
-struct lmr_LogEntry {
+struct lcm_LogEntry {
     int32_t job_id;
     int32_t batch_id;
     struct {
@@ -109,21 +109,21 @@ struct lmr_LogEntry {
 };
 
 /**
- * Adds LMR library functions to provided lua state, with their behavior
+ * Adds LCM library functions to provided lua state, with their behavior
  * customized using provided configuration, if given.
  */
-LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c);
+LCM_API void lcm_openlib(lua_State* L, const lcm_Config* c);
 
 /**
  * Registers provided job in Lua state.
  *
  * The job is safe to destroy at any point after the function returns.
  *
- * Returns `0` (OK), `LMR_ERRRUN`, `LMR_ERRSYNTAX`, `LMR_ERRMEM`, `LMR_ERRERR`,
- * `LMR_ERRINIT`, or `LMR_ERRNOCALL`. The last is returned only if the provided
- * job fails to call `lmr:job()` when evaluated.
+ * Returns `0` (OK), `LCM_ERRRUN`, `LCM_ERRSYNTAX`, `LCM_ERRMEM`, `LCM_ERRERR`,
+ * `LCM_ERRINIT`, or `LCM_ERRNOCALL`. The last is returned only if the provided
+ * job fails to call `lcm:job()` when evaluated.
  */
-LMR_API int lmr_register(lua_State* L, const lmr_Job j);
+LCM_API int lcm_register(lua_State* L, const lcm_Job j);
 
 /**
  * Processes, using referenced Lua state, batch `b` and provides any results to
@@ -131,13 +131,13 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j);
  *
  * The batch provided to `c` is destroyed after the closure function returns.
  *
- * Returns `0` (OK), `LMR_ERRRUN`, `LMR_ERRMEM`, `LMR_ERRERR`, `LMR_ERRINIT` or
- * `LMR_ERRNORESULT`. The last is returned only if the job processing the batch
+ * Returns `0` (OK), `LCM_ERRRUN`, `LCM_ERRMEM`, `LCM_ERRERR`, `LCM_ERRINIT` or
+ * `LCM_ERRNORESULT`. The last is returned only if the job processing the batch
  * fails to return a batch result, in which case `c` is never called.
  */
-LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ClosureBatch c);
+LCM_API int lcm_process(lua_State* L, const lcm_Batch b, lcm_ClosureBatch c);
 
-/** Returns string representation of provided LMR error code. */
-LMR_API const char* lmr_errstr(const int err);
+/** Returns string representation of provided LCM error code. */
+LCM_API const char* lcm_errstr(const int err);
 
 #endif
