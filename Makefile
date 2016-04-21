@@ -5,7 +5,7 @@ PLATFORM_ARCH   = $(shell uname -m)
 ifeq (${PLATFORM_OS},Darwin)
 	PLATFORM_CFLAGS = -I/usr/local/include/luajit-2.0
 	PLATFORM_LDFLAGS = -L/usr/local/lib
-	PLATFORM_TEST_LIBS = -lluajit
+	PLATFORM_LIBS = -lluajit
 	PLATFORM_SOEXT = dylib
 	ifneq ($(filter %64,${PLATFORM_ARCH}),)
 		PLATFORM_TEST_LDFLAGS += -pagezero_size 10000 -image_base 100000000
@@ -14,7 +14,7 @@ endif
 ifeq (${PLATFORM_OS},Linux)
 	PLATFORM_CFLAGS = $(shell pkg-config --cflags luajit)
 	PLATFORM_LDFLAGS = $(shell pkg-config --libs-only-L luajit)
-	PLATFORM_TEST_LIBS = $(shell pkg-config --libs-only-l luajit)
+	PLATFORM_LIBS = $(shell pkg-config --libs-only-l luajit)
 	PLATFORM_SOEXT = so
 endif
 
@@ -23,7 +23,7 @@ AR              = ar -rcu
 CC              = clang
 CFLAGS          = -std=c99 -Wall -Wpedantic ${PLATFORM_CFLAGS}
 LDFLAGS         = ${PLATFORM_LDFLAGS}
-LIBS            =
+LIBS            = ${PLATFORM_LIBS}
 RM              = rm -f
 
 DEBUG_AR        = ${AR}
@@ -40,8 +40,8 @@ RELEASE_LIBS    = ${LIBS}
 
 TEST_CC         = ${DEBUG_CC}
 TEST_CFLAGS     = ${DEBUG_CFLAGS}
-TEST_LDFLAGS    = ${DEBUG_LDFLAGS} ${PLATFORM_TEST_LDFLAGS}
-TEST_LIBS       = ${DEBUG_LIBS} ${PLATFORM_TEST_LIBS}
+TEST_LDFLAGS    = ${DEBUG_LDFLAGS}
+TEST_LIBS       = ${DEBUG_LIBS}
 
 OEXT            = o
 SOEXT           = ${PLATFORM_SOEXT}
