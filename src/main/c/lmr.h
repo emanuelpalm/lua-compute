@@ -76,6 +76,25 @@ typedef struct {
 } lmr_Batch;
 
 /**
+ * Function used to receive batch processing results.
+ *
+ * Provided `result` is only guaranteed to point to valid memory during the
+ * invocation of this function.
+ */
+typedef void (*lmr_ResultFunction)(void* context, const lmr_Batch* result);
+
+/**
+ * Closure holding some arbitrary context pointer and a function for receiving
+ * batch processing results.
+ *
+ * When `function` is called, the `context` should be provided as argument.
+ */
+typedef struct {
+    void* context;
+    lmr_ResultFunction function;
+} lmr_ResultClosure;
+
+/**
  * Adds LMR library functions to provided lua state, with their behavior
  * customized using provided configuration, if given.
  */
@@ -93,15 +112,15 @@ LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c);
 LMR_API int lmr_register(lua_State* L, const lmr_Job j);
 
 /**
- * Processes, using referenced Lua state, in-batch and writes any results to
- * out-batch.
+ * Processes, using referenced Lua state, batch `b` and provides any results to
+ * the function in closure `c`.
  *
- * Both batches are safe to destroy at any point after the function returns.
+ * The batch provided to `c` is destroyed after the closure function returns.
  *
  * Returns `0` (OK), `LMR_ERRRUN`, `LMR_ERRMEM`, `LMR_ERRERR`, `LMR_ERRINIT` or
  * `LMR_ERRNORESULT`. The last is returned only if the job processing the batch
- * fails to return a batch result, in which case `out` is left untouched.
+ * fails to return a batch result, in which case `c` is never called.
  */
-LMR_API int lmr_process(lua_State* L, const lmr_Batch in, lmr_Batch* out);
+LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ResultClosure c);
 
 #endif

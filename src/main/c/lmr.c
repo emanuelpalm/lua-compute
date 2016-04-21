@@ -87,7 +87,7 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j)
     return 0;
 }
 
-LMR_API int lmr_process(lua_State* L, const lmr_Batch in, lmr_Batch* out)
+LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ResultClosure c)
 {
     // Get and setup LMR context object.
     lmr_State* state;
@@ -97,18 +97,18 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch in, lmr_Batch* out)
             return LMR_ERRINIT;
         }
         state = luaL_checkudata(L, -1, "LMR.state");
-        state->job_id = in.job_id;
-        state->batch_id = in.batch_id;
+        state->job_id = b.job_id;
+        state->batch_id = b.batch_id;
     }
     // Get job function.
     {
         luaL_getmetafield(L, -1, "jobs");
-        lua_pushinteger(L, in.job_id);
+        lua_pushinteger(L, b.job_id);
         lua_gettable(L, -2);
     }
     // Call job function.
     {
-        lua_pushlstring(L, (char*)in.data.bytes, in.data.length);
+        lua_pushlstring(L, (char*)b.data.bytes, b.data.length);
         lua_pcall(L, 1, 1, 0);
     }
     switch (lua_type(L, -1)) {

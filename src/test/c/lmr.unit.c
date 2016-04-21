@@ -5,8 +5,14 @@
 #include <lualib.h>
 #include <string.h>
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 //{ Data registered during calls to `logf()`.
 static lmr_LogEntry log_entry = {.message.string = "" };
+//}
+
+//{ Return value of registered Lua job function.
+static lmr_Batch batch_result = {.job_id = 0 };
 //}
 
 void provider_lua_state(unit_T* T, unit_TestFunction t)
@@ -30,25 +36,37 @@ void suite_lmr(unit_T* T)
 }
 
 // Used to test `lmr:log()` lua function.
-static void logf(const lmr_LogEntry* entry)
+static void f_log(const lmr_LogEntry* entry)
 {
     static char message[64];
     message[sizeof(message) - 1] = '\0';
 
+    size_t length = MIN(sizeof(message) - 1, entry->message.length);
+
     log_entry.job_id = entry->job_id;
     log_entry.batch_id = entry->batch_id;
-    log_entry.message.string = strncpy(
-        message,
-        entry->message.string,
-        sizeof(message) - 1);
-    log_entry.message.length = entry->message.length;
+    log_entry.message.string = strncpy(message, entry->message.string, length);
+    log_entry.message.length = length;
+}
+
+static void f_batch(void* context, const lmr_Batch* batch)
+{
+    static char data[64];
+    data[sizeof(data) - 1] = '\0';
+
+    size_t length = MIN(sizeof(data) - 1, batch->data.length);
+
+    batch_result.job_id = batch->job_id;
+    batch_result.batch_id = batch->batch_id;
+    batch_result.data.bytes = memcpy(data, batch->data.bytes, length);
+    batch_result.data.length = length;
 }
 
 void test_log(unit_T* T, void* arg)
 {
     lua_State* L = arg;
 
-    lmr_openlib(L, &(lmr_Config){.log_function = logf });
+    lmr_openlib(L, &(lmr_Config){.log_function = f_log });
 
     const lmr_Job j = {
         .job_id = 1,
@@ -57,7 +75,7 @@ void test_log(unit_T* T, void* arg)
             .length = 49,
         },
     };
-    const lmr_Batch b_in = {
+    const lmr_Batch b = {
         .job_id = 1,
         .batch_id = 2,
         .data = {
@@ -65,29 +83,27 @@ void test_log(unit_T* T, void* arg)
             .length = 5,
         },
     };
-    lmr_Batch b_out = {
-        .job_id = 0,
-        .batch_id = 0,
-        .data = {
-            .bytes = NULL,
-            .length = 0,
-        },
-    };
+    batch_result.job_id = 0;
+    batch_result.batch_id = 0;
+    batch_result.data.bytes = NULL;
+    batch_result.data.length = 0;
+
     if (lmr_register(L, j) != 0) {
         unit_failf(T, "[lmr_register] %s", lua_tostring(L, -1));
     }
+    lmr_ResultClosure c = {.function = f_batch };
     int status;
-    if ((status = lmr_process(L, b_in, &b_out)) != LMR_ERRNORESULT) {
+    if ((status = lmr_process(L, b, c)) != LMR_ERRNORESULT) {
         unit_failf(T, "[lmr_process] %s", status == 0
                 ? "Returned OK, expected LMR_ERRNORESULT."
                 : lua_tostring(L, -1));
     }
 
     //{ Since Lua job callback never returned, the out batch must be untouched.
-    unit_assert(T, b_out.job_id == 0);
-    unit_assert(T, b_out.batch_id == 0);
-    unit_assert(T, b_out.data.bytes == NULL);
-    unit_assert(T, b_out.data.length == 0);
+    unit_assert(T, batch_result.job_id == 0);
+    unit_assert(T, batch_result.batch_id == 0);
+    unit_assert(T, batch_result.data.bytes == NULL);
+    unit_assert(T, batch_result.data.length == 0);
     //}
 
     unit_assert(T, log_entry.job_id == 1);
@@ -109,7 +125,7 @@ void test_process(unit_T* T, void* arg)
             .length = 55,
         },
     };
-    const lmr_Batch b_in = {
+    const lmr_Batch b = {
         .job_id = 2,
         .batch_id = 1,
         .data = {
@@ -117,24 +133,22 @@ void test_process(unit_T* T, void* arg)
             .length = 5,
         },
     };
-    lmr_Batch b_out = {
-        .job_id = 0,
-        .batch_id = 0,
-        .data = {
-            .bytes = (uint8_t*)"",
-            .length = 0,
-        },
-    };
+    batch_result.job_id = 0;
+    batch_result.batch_id = 0;
+    batch_result.data.bytes = (uint8_t*)"";
+    batch_result.data.length = 0;
+
     if (lmr_register(L, j) != 0) {
         unit_failf(T, "[lmr_register] %s", lua_tostring(L, -1));
     }
+    lmr_ResultClosure c = {.function = f_batch };
     int status;
-    if ((status = lmr_process(L, b_in, &b_out)) != 0) {
+    if ((status = lmr_process(L, b, c)) != 0) {
         unit_failf(T, "[lmr_process] %s", lua_tostring(L, -1));
     }
 
-    unit_assert(T, b_out.job_id == 2);
-    unit_assert(T, b_out.batch_id == 1);
-    unit_assert(T, memcmp(b_out.data.bytes, "HELLO", 5) == 0);
-    unit_assert(T, b_out.data.length == 5);
+    unit_assert(T, batch_result.job_id == 2);
+    unit_assert(T, batch_result.batch_id == 1);
+    unit_assert(T, memcmp(batch_result.data.bytes, "HELLO", 5) == 0);
+    unit_assert(T, batch_result.data.length == 5);
 }
