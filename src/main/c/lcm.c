@@ -39,9 +39,9 @@ LCM_API void lcm_openlib(lua_State* L, const lcm_Config* c)
         }
         lua_setfield(L, -2, "__index");
 
-        // Create jobs table.
+        // Create lambdas table.
         lua_newtable(L);
-        lua_setfield(L, -2, "jobs");
+        lua_setfield(L, -2, "lambdas");
     }
     lua_setmetatable(L, -2);
 
@@ -79,7 +79,7 @@ LCM_API int lcm_register(lua_State* L, const lcm_Lambda l)
     // as argument.
     {
         lua_getglobal(L, "lcm");
-        luaL_getmetafield(L, -1, "jobs");
+        luaL_getmetafield(L, -1, "lambdas");
         lua_pushinteger(L, l.lambda_id);
         lua_gettable(L, -2);
         const int status = lua_type(L, -1);
@@ -106,7 +106,7 @@ LCM_API int lcm_process(lua_State* L, const lcm_Batch b, lcm_ClosureBatch c)
     }
     // Get job function.
     {
-        luaL_getmetafield(L, -1, "jobs");
+        luaL_getmetafield(L, -1, "lambdas");
         lua_pushinteger(L, b.lambda_id);
         lua_gettable(L, -2);
     }
@@ -169,7 +169,7 @@ int lcm_l_register(lua_State* L)
     }
     // Save job function to registry.
     {
-        luaL_getmetafield(L, -2, "jobs");
+        luaL_getmetafield(L, -2, "lambdas");
         lua_pushinteger(L, lambda_id);
         lua_pushvalue(L, -3); // Copy function reference to top of stack.
         lua_settable(L, -3);
