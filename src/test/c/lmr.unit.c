@@ -7,7 +7,7 @@
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-//{ Data registered during calls to `logf()`.
+//{ Data registered during calls to `lmr:log()`.
 static lmr_LogEntry log_entry = {.message.string = "" };
 //}
 
@@ -35,7 +35,7 @@ void suite_lmr(unit_T* T)
     unit_run_test(T, test_process, provider_lua_state);
 }
 
-// Used to test `lmr:log()` lua function.
+// Used to test the `lmr:log()` lua function.
 static void f_log(const lmr_LogEntry* entry)
 {
     static char message[64];
