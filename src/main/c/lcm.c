@@ -113,29 +113,31 @@ LCM_API int lcm_process(lua_State* L, const lcm_Batch b, lcm_ClosureBatch c)
         luaL_getmetafield(L, -1, "lambdas");
         lua_pushinteger(L, b.lambda_id);
         lua_gettable(L, -2);
+        if (lua_type(L, -1) != LUA_TFUNCTION) {
+            lua_pop(L, 3);
+            lua_pushfstring(L, "lambda{id=%d} not available", b.lambda_id);
+            return LCM_ERRNOLAMBDA;
+        }
     }
     // Call job function.
-    int status;
     {
         lua_pushlstring(L, (char*)b.data.bytes, b.data.length);
-        status = lua_pcall(L, 1, 1, 0);
-        if (status == 0 && lua_type(L, -1) != LUA_TSTRING) {
+        const int status = lua_pcall(L, 1, 1, 0);
+        if (status != 0) {
+            lua_pop(L, 3);
+            return status;
+        }
+        if (lua_type(L, -1) != LUA_TSTRING) {
+            lua_pop(L, 3);
             lua_pushliteral(L, "must return `string`");
-            status = LCM_ERRNORESULT;
+            return LCM_ERRNORESULT;
         }
     }
     // Handle job results.
-    if (status == 0) {
-        lcm_Batch r = {.lambda_id = b.lambda_id, .batch_id = b.batch_id };
-        r.data.bytes = (uint8_t*)lua_tolstring(L, -1, &r.data.length);
-        c.function(c.context, &r);
-
-    } else {
-        // Make sure error message is at bottom of stack before popping.
-        lua_insert(L, 1);
-    }
-    lua_pop(L, 3);
-    return status;
+    lcm_Batch r = {.lambda_id = b.lambda_id, .batch_id = b.batch_id };
+    r.data.bytes = (uint8_t*)lua_tolstring(L, -1, &r.data.length);
+    c.function(c.context, &r);
+    return 0;
 }
 
 LCM_API const char* lcm_errstr(const int err)
@@ -153,6 +155,8 @@ LCM_API const char* lcm_errstr(const int err)
         return "LCM: Lua context not setup with LCM.";
     case LCM_ERRNOCALL:
         return "LCM: `lcm:register()` never called.";
+    case LCM_ERRNOLAMBDA:
+        return "LCM: Required lambda not available.";
     case LCM_ERRNORESULT:
         return "LCM: No result produced.";
     default:

@@ -19,7 +19,8 @@
 #define LCM_ERR (LUA_ERRERR + 100)
 #define LCM_ERRINIT (LCM_ERR + 1) ///< Lua context not setup with LCM.
 #define LCM_ERRNOCALL (LCM_ERR + 2) ///< `lcm:register()` never called.
-#define LCM_ERRNORESULT (LCM_ERR + 3) ///< No result produced.
+#define LCM_ERRNOLAMBDA (LCM_ERR + 3) //< Required lambda not available.
+#define LCM_ERRNORESULT (LCM_ERR + 4) ///< No result produced.
 ///}
 
 #endif
