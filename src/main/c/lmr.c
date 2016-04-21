@@ -108,34 +108,26 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ClosureBatch c)
         lua_gettable(L, -2);
     }
     // Call job function.
+    int status;
     {
         lua_pushlstring(L, (char*)b.data.bytes, b.data.length);
-        lua_pcall(L, 1, 1, 0);
+        status = lua_pcall(L, 1, 1, 0);
+        if (status == 0 && lua_type(L, -1) != LUA_TSTRING) {
+            lua_pushliteral(L, "Must return `string`.");
+            status = LMR_ERRNORESULT;
+        }
     }
-    int status;
-    switch (lua_type(L, -1)) {
-    case LUA_TNIL:
-    case LUA_TNONE:
-        status = LMR_ERRNORESULT;
-        break;
+    // Handle job results.
+    if (status == 0) {
+        lmr_Batch r = {.job_id = b.job_id, .batch_id = b.batch_id };
+        r.data.bytes = (uint8_t*)lua_tolstring(L, -1, &r.data.length);
+        c.function(c.context, &r);
 
-    case LUA_TSTRING: {
-        lmr_Batch result = {
-            .job_id = b.job_id,
-            .batch_id = b.batch_id,
-        };
-        result.data.bytes = (uint8_t*)lua_tolstring(L, -1, &result.data.length);
-        c.function(c.context, &result);
-        status = 0;
-    } break;
-
-    default:
-        status = LMR_ERRRUN;
+    } else {
+        // Make sure error message is at bottom of stack before popping.
+        lua_insert(L, 1);
     }
     lua_pop(L, 3);
-    if (status == LMR_ERRRUN) {
-        lua_pushliteral(L, "Must return `string`.");
-    }
     return status;
 }
 
