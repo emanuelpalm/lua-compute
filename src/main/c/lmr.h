@@ -1,9 +1,9 @@
 /**
  * Lua Map/Reduce main header.
  *
- * Its important to note that all of the methods provided have no thread
- * safety guarantees whatsoever. It is expected that this API is used
- * exclusively by a single thread at all times.
+ * Its important to note that the library provides no thread safety guarantees
+ * whatsoever. If wishing to use the library in a multi-threaded setting, make
+ * sure that no more than one thread access each used Lua context.
  *
  * @file
  */
@@ -58,9 +58,6 @@ typedef struct lmr_ClosureBatch {
 
 /**
  * LMR Lua library configuration.
- *
- * Provided when initializing an LMR Lua context using `lmr_openlib()` in order
- * to configure LMR behavior.
  */
 struct lmr_Config {
     /// Log closure used when forwarding `lmr:log()` calls. May be NULL.
