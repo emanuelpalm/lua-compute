@@ -87,7 +87,39 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j)
 
 LMR_API int lmr_process(lua_State* L, const lmr_Batch in, lmr_Batch* out)
 {
-    return -1;
+    // Get and setup LMR context object.
+    lmr_State* state;
+    {
+        lua_getglobal(L, "lmr");
+        if (lua_type(L, -1) != LUA_TUSERDATA) {
+            return LMR_ERRINIT;
+        }
+        state = luaL_checkudata(L, -1, "LMR.state");
+        state->job_id = in.job_id;
+        state->batch_id = in.batch_id;
+    }
+    // Get job function.
+    {
+        luaL_getmetafield(L, -1, "jobs");
+        lua_pushinteger(L, in.job_id);
+        lua_gettable(L, -2);
+    }
+    // Call job function.
+    {
+        lua_pushlstring(L, (char*)in.data.bytes, in.data.length);
+        lua_pcall(L, 1, 1, 0);
+    }
+    switch (lua_type(L, -1)) {
+    case LUA_TNIL:
+    case LUA_TNONE:
+        return LMR_ERRNORESULT;
+
+    case LUA_TSTRING:
+        return 0;
+
+    default:
+        return LMR_ERRUN;
+    }
 }
 
 int lmr_l_register(lua_State* L)
@@ -112,4 +144,18 @@ int lmr_l_register(lua_State* L)
     return 0;
 }
 
-int lmr_l_log(lua_State* L) { return 0; }
+int lmr_l_log(lua_State* L)
+{
+    const lmr_State* state = luaL_checkudata(L, 1, "LMR.state");
+    size_t message_length;
+    const char* message = luaL_checklstring(L, 2, &message_length);
+
+    if (state->log_function != NULL) {
+        state->log_function(&(lmr_LogEntry){
+            .job_id = state->job_id,
+            .batch_id = state->batch_id,
+            .message = {.string = message, .length = message_length },
+        });
+    }
+    return 0;
+}
