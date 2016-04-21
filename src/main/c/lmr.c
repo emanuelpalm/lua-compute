@@ -52,6 +52,7 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j)
         }
         state->job_id = j.job_id;
         state->batch_id = 0;
+        lua_pop(L, 1);
     }
     // Load job into Lua state and execute it.
     {
@@ -69,11 +70,13 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j)
     // Ensure that the executed job actually called `lmr:job()` with a function
     // as argument.
     {
-        lua_getmetatable(L, -1);
-        lua_getfield(L, -1, "jobs");
+        lua_getglobal(L, "lmr");
+        luaL_getmetafield(L, -1, "jobs");
         lua_pushinteger(L, j.job_id);
         lua_gettable(L, -2);
-        if (lua_type(L, -1) != LUA_TFUNCTION) {
+        const int status = lua_type(L, -1);
+        lua_pop(L, 3);
+        if (status != LUA_TFUNCTION) {
             return LMR_ERRNOCALL;
         }
     }
@@ -94,16 +97,15 @@ int lmr_l_register(lua_State* L)
     // Load job identifier from registry.
     int32_t job_id;
     {
-        const lmr_State* state = luaL_checkudata(L, 1, "LMR.state");
+        const lmr_State* state = lua_touserdata(L, 1);
         luaL_argcheck(L, state != NULL, 1, "`LMR.state` expected");
         job_id = state->job_id;
     }
     // Save job function to registry.
     {
-        lua_getmetatable(L, -2);
-        lua_getfield(L, -1, "jobs");
+        luaL_getmetafield(L, -2, "jobs");
         lua_pushinteger(L, job_id);
-        lua_pushvalue(L, -4); // Move function to top of stack.
+        lua_pushvalue(L, -3); // Copy function reference to top of stack.
         lua_settable(L, -3);
     }
     return 0;
