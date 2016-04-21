@@ -116,7 +116,7 @@ void test_process(unit_T* T, void* arg)
     lua_State* L = arg;
 
     luaL_openlibs(L);
-    lmr_openlib(L, &(lmr_Config){.log_function = logf });
+    lmr_openlib(L, NULL);
 
     const lmr_Job j = {
         .job_id = 2,
