@@ -67,8 +67,12 @@ LCM_API int lcm_register(lua_State* L, const lcm_Lambda l)
         const char* buffer = l.program.lua;
         const size_t size = l.program.length;
 
+        char name[24];
+        name[sizeof(name) - 1] = '\0';
+        snprintf(name, sizeof(name) - 1, "lambda{id=%d}", l.lambda_id);
+
         int status;
-        if ((status = luaL_loadbuffer(L, buffer, size, "lcm_job")) != 0) {
+        if ((status = luaL_loadbuffer(L, buffer, size, name)) != 0) {
             return status;
         }
         if ((status = lua_pcall(L, 0, 0, 0)) != 0) {
