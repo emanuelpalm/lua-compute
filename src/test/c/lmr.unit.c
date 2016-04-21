@@ -76,7 +76,7 @@ void test_log(unit_T* T, void* arg)
         unit_failf(T, "[lmr_register] %s", lua_tostring(L, -1));
     }
     int status;
-    if ((status = lmr_process(L, b_in, &b_out)) != 0) {
+    if ((status = lmr_process(L, b_in, &b_out)) != LMR_ERRNORESULT) {
         unit_failf(T, "[lmr_process] %s", status == 0
                 ? "Returned OK, expected LMR_ERRNORESULT."
                 : lua_tostring(L, -1));
@@ -128,9 +128,7 @@ void test_process(unit_T* T, void* arg)
     }
     int status;
     if ((status = lmr_process(L, b_in, &b_out)) != 0) {
-        unit_failf(T, "[lmr_process] %s", status == 0
-                ? "Returned OK, expected LMR_ERRNORESULT."
-                : lua_tostring(L, -1));
+        unit_failf(T, "[lmr_process] %s", lua_tostring(L, -1));
     }
 
     unit_assert(T, b_out.job_id == 2);
