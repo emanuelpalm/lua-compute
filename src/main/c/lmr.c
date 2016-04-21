@@ -3,7 +3,9 @@
 #include <stdlib.h>
 
 /**
- * LMR state object, used to inject LMR data into the Lua state.
+ * LMR state object.
+ *
+ * Makes LMR context data available to LMR Lua/C functions.
  */
 typedef struct {
     int32_t job_id;
