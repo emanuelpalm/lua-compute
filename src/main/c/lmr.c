@@ -2,6 +2,9 @@
 #include "lmrlua.h"
 #include <stdlib.h>
 
+/**
+ * LMR state object, used to inject LMR data into the Lua state.
+ */
 typedef struct {
     int32_t job_id;
     int32_t batch_id;
@@ -63,7 +66,7 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j)
             return status;
         }
     }
-    // Ensure that the executed job actually called `lmr.job()` with a function
+    // Ensure that the executed job actually called `lmr:job()` with a function
     // as argument.
     {
         lua_getmetatable(L, -1);
