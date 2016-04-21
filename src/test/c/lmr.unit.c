@@ -59,8 +59,11 @@ void test_log(unit_T* T, void* arg)
                 .length = 51,
             },
         };
-        if (lmr_register(L, j) != 0) {
-            unit_failf(T, "[lmr_register] %s", lua_tostring(L, -1));
+        const int status = lmr_register(L, j);
+        if (status != 0) {
+            unit_failf(T, "[lmr_register] %s\n\t\t\t%s",
+                lmr_errstr(status),
+                lua_tostring(L, -1));
         }
     }
     // Process batch using registered job.
@@ -80,7 +83,9 @@ void test_log(unit_T* T, void* arg)
         };
         const int status = lmr_process(L, input_batch, result_closure);
         if (status != LMR_ERRNORESULT) {
-            unit_failf(T, "[lmr_process] %s", status == 0
+            unit_failf(T, "[lmr_process] %s\n\t\t\t%s",
+                lmr_errstr(status),
+                status == 0
                     ? "Returned OK, expected LMR_ERRNORESULT."
                     : lua_tostring(L, -1));
         }
@@ -123,8 +128,11 @@ void test_process(unit_T* T, void* arg)
                 .length = 57,
             },
         };
-        if (lmr_register(L, j) != 0) {
-            unit_failf(T, "[lmr_register] %s", lua_tostring(L, -1));
+        const int status = lmr_register(L, j);
+        if (status != 0) {
+            unit_failf(T, "[lmr_register] %s\n\t\t\t%s",
+                lmr_errstr(status),
+                lua_tostring(L, -1));
         }
     }
     // Process batch using registered job.
@@ -142,9 +150,11 @@ void test_process(unit_T* T, void* arg)
             .context = &result_batch,
             .function = f_batch,
         };
-        int status;
-        if ((status = lmr_process(L, input_batch, result_closure)) != 0) {
-            unit_failf(T, "[lmr_process] %s", lua_tostring(L, -1));
+        const int status = lmr_process(L, input_batch, result_closure);
+        if (status != 0) {
+            unit_failf(T, "[lmr_process] %s\n\t\t\t%s",
+                lmr_errstr(status),
+                lua_tostring(L, -1));
         }
     }
     // Verify result batch state.
