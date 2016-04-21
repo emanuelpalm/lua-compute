@@ -14,7 +14,9 @@
 #include <stdint.h>
 
 /**
- * A log entry.
+ * LMR log entry.
+ *
+ * Provided when receiving Lua `lmr:log()` calls.
  */
 typedef struct {
     int32_t job_id;
@@ -26,7 +28,7 @@ typedef struct {
 } lmr_LogEntry;
 
 /**
- * A function used to receive `lmr:log()` calls.
+ * Function used to receive `lmr:log()` calls.
  *
  * Provided log entries are destroyed right after a log function returns.
  */
@@ -44,7 +46,7 @@ typedef struct {
 } lmr_Config;
 
 /**
- * A job definition, containing a job ID and a lua program able to process data
+ * Job definition, containing a job ID and a lua program able to process data
  * batches.
  *
  * A job is essentially an arbitrary Lua program that is required to call the
