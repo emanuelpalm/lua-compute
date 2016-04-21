@@ -120,7 +120,7 @@ LCM_API int lcm_process(lua_State* L, const lcm_Batch b, lcm_ClosureBatch c)
         lua_pushlstring(L, (char*)b.data.bytes, b.data.length);
         status = lua_pcall(L, 1, 1, 0);
         if (status == 0 && lua_type(L, -1) != LUA_TSTRING) {
-            lua_pushliteral(L, "Must return `string`.");
+            lua_pushliteral(L, "must return `string`");
             status = LCM_ERRNORESULT;
         }
     }
@@ -156,14 +156,14 @@ LCM_API const char* lcm_errstr(const int err)
     case LCM_ERRNORESULT:
         return "LCM: No result produced.";
     default:
-        return "?";
+        return "LCM: ?";
     }
 }
 
 int lcm_l_register(lua_State* L)
 {
     if (lua_type(L, 1) != LUA_TUSERDATA || lua_type(L, 2) != LUA_TFUNCTION) {
-        luaL_error(L, "Bad arguments. (`LCM.state`, `function`) expected.");
+        luaL_error(L, "Expected arguments [`LCM.state`, `function`]");
     }
     // Load job identifier from registry.
     int32_t lambda_id;
