@@ -91,7 +91,7 @@ void test_log(unit_T* T, void* arg)
     if (lmr_register(L, j) != 0) {
         unit_failf(T, "[lmr_register] %s", lua_tostring(L, -1));
     }
-    lmr_ResultClosure c = {.function = f_batch };
+    lmr_ClosureBatch c = {.function = f_batch };
     int status;
     if ((status = lmr_process(L, b, c)) != LMR_ERRNORESULT) {
         unit_failf(T, "[lmr_process] %s", status == 0
@@ -141,7 +141,7 @@ void test_process(unit_T* T, void* arg)
     if (lmr_register(L, j) != 0) {
         unit_failf(T, "[lmr_register] %s", lua_tostring(L, -1));
     }
-    lmr_ResultClosure c = {.function = f_batch };
+    lmr_ClosureBatch c = {.function = f_batch };
     int status;
     if ((status = lmr_process(L, b, c)) != 0) {
         unit_failf(T, "[lmr_process] %s", lua_tostring(L, -1));

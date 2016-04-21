@@ -24,7 +24,7 @@ typedef struct lmr_LogEntry lmr_LogEntry;
  * Provided `entry` is only guaranteed to point to valid memory during the
  * invocation of the function.
  */
-typedef void (*lmr_LogFunction)(void* context, const lmr_LogEntry* entry);
+typedef void (*lmr_FunctionLog)(void* context, const lmr_LogEntry* entry);
 
 /**
  * Function used to receive batch processing results.
@@ -32,7 +32,7 @@ typedef void (*lmr_LogFunction)(void* context, const lmr_LogEntry* entry);
  * Provided `result` is only guaranteed to point to valid memory during the
  * invocation of the function.
  */
-typedef void (*lmr_ResultFunction)(void* context, const lmr_Batch* result);
+typedef void (*lmr_FunctionBatch)(void* context, const lmr_Batch* result);
 
 /**
  * Closure holding some arbitrary context pointer and a function for
@@ -40,10 +40,10 @@ typedef void (*lmr_ResultFunction)(void* context, const lmr_Batch* result);
  *
  * When `function` is called, the `context` should be provided as argument.
  */
-typedef struct lmr_LogClosure {
+typedef struct lmr_ClosureLog {
     void* context;
-    lmr_LogFunction function;
-} lmr_LogClosure;
+    lmr_FunctionLog function;
+} lmr_ClosureLog;
 
 /**
  * Closure holding some arbitrary context pointer and a function for receiving
@@ -51,10 +51,10 @@ typedef struct lmr_LogClosure {
  *
  * When `function` is called, the `context` should be provided as argument.
  */
-typedef struct lmr_ResultClosure {
+typedef struct lmr_ClosureBatch {
     void* context;
-    lmr_ResultFunction function;
-} lmr_ResultClosure;
+    lmr_FunctionBatch function;
+} lmr_ClosureBatch;
 
 /**
  * LMR Lua library configuration.
@@ -64,7 +64,7 @@ typedef struct lmr_ResultClosure {
  */
 struct lmr_Config {
     /// Log closure used when forwarding `lmr:log()` calls. May be NULL.
-    lmr_LogClosure closure_log;
+    lmr_ClosureLog closure_log;
 };
 
 /**
@@ -138,6 +138,6 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j);
  * `LMR_ERRNORESULT`. The last is returned only if the job processing the batch
  * fails to return a batch result, in which case `c` is never called.
  */
-LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ResultClosure c);
+LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ClosureBatch c);
 
 #endif
