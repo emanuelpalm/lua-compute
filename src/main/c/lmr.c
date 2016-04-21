@@ -48,10 +48,10 @@ LMR_API int lmr_register(lua_State* L, const lmr_Job j)
     // Save job identifier to Lua registry.
     {
         lua_getglobal(L, "lmr");
-        lmr_State* state = luaL_checkudata(L, -1, "LMR.state");
-        if (state == NULL) {
+        if (lua_type(L, -1) != LUA_TUSERDATA) {
             return LMR_ERRINIT;
         }
+        lmr_State* state = luaL_checkudata(L, -1, "LMR.state");
         state->job_id = j.job_id;
         state->batch_id = 0;
         lua_pop(L, 1);
@@ -99,8 +99,7 @@ int lmr_l_register(lua_State* L)
     // Load job identifier from registry.
     int32_t job_id;
     {
-        const lmr_State* state = lua_touserdata(L, 1);
-        luaL_argcheck(L, state != NULL, 1, "`LMR.state` expected");
+        const lmr_State* state = luaL_checkudata(L, 1, "LMR.state");
         job_id = state->job_id;
     }
     // Save job function to registry.
