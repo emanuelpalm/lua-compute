@@ -1,5 +1,6 @@
 #include "lmr.h"
 #include "lmrlua.h"
+#include <lauxlib.h>
 #include <stdlib.h>
 
 /**
@@ -129,10 +130,10 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ClosureBatch c)
     } break;
 
     default:
-        status = LMR_ERRUN;
+        status = LMR_ERRRUN;
     }
     lua_pop(L, 3);
-    if (status == LMR_ERRUN) {
+    if (status == LMR_ERRRUN) {
         lua_pushliteral(L, "Must return `string`.");
     }
     return status;
