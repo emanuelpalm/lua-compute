@@ -111,17 +111,31 @@ LMR_API int lmr_process(lua_State* L, const lmr_Batch b, lmr_ResultClosure c)
         lua_pushlstring(L, (char*)b.data.bytes, b.data.length);
         lua_pcall(L, 1, 1, 0);
     }
+    int status;
     switch (lua_type(L, -1)) {
     case LUA_TNIL:
     case LUA_TNONE:
-        return LMR_ERRNORESULT;
+        status = LMR_ERRNORESULT;
+        break;
 
-    case LUA_TSTRING:
-        return 0;
+    case LUA_TSTRING: {
+        lmr_Batch result = {
+            .job_id = b.job_id,
+            .batch_id = b.batch_id,
+        };
+        result.data.bytes = (uint8_t*)lua_tolstring(L, -1, &result.data.length);
+        c.function(c.context, &result);
+        status = 0;
+    } break;
 
     default:
-        return LMR_ERRUN;
+        status = LMR_ERRUN;
     }
+    lua_pop(L, 3);
+    if (status == LMR_ERRUN) {
+        lua_pushliteral(L, "Must return `string`.");
+    }
+    return status;
 }
 
 int lmr_l_register(lua_State* L)
