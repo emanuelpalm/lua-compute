@@ -9,7 +9,7 @@
  * Makes LCM context data available to LCM Lua/C functions.
  */
 typedef struct {
-    int32_t job_id;
+    int32_t lambda_id;
     int32_t batch_id;
     lcm_ClosureLog closure_log;
 } lcm_State;
@@ -20,7 +20,7 @@ LCM_API void lcm_openlib(lua_State* L, const lcm_Config* c)
     {
         lcm_State* state = lua_newuserdata(L, sizeof(lcm_State));
         state->batch_id = 0;
-        state->job_id = 0;
+        state->lambda_id = 0;
         if (c != NULL) {
             state->closure_log = c->closure_log;
         }
@@ -49,7 +49,7 @@ LCM_API void lcm_openlib(lua_State* L, const lcm_Config* c)
     lua_setglobal(L, "lcm");
 }
 
-LCM_API int lcm_register(lua_State* L, const lcm_Job j)
+LCM_API int lcm_register(lua_State* L, const lcm_Lambda l)
 {
     // Save job identifier to Lua registry.
     {
@@ -58,14 +58,14 @@ LCM_API int lcm_register(lua_State* L, const lcm_Job j)
             return LCM_ERRINIT;
         }
         lcm_State* state = luaL_checkudata(L, -1, "LCM.state");
-        state->job_id = j.job_id;
+        state->lambda_id = l.lambda_id;
         state->batch_id = 0;
         lua_pop(L, 1);
     }
     // Load job into Lua state and execute it.
     {
-        const char* buffer = j.program.lua;
-        const size_t size = j.program.length;
+        const char* buffer = l.program.lua;
+        const size_t size = l.program.length;
 
         int status;
         if ((status = luaL_loadbuffer(L, buffer, size, "lcm_job")) != 0) {
@@ -80,7 +80,7 @@ LCM_API int lcm_register(lua_State* L, const lcm_Job j)
     {
         lua_getglobal(L, "lcm");
         luaL_getmetafield(L, -1, "jobs");
-        lua_pushinteger(L, j.job_id);
+        lua_pushinteger(L, l.lambda_id);
         lua_gettable(L, -2);
         const int status = lua_type(L, -1);
         lua_pop(L, 3);
@@ -101,13 +101,13 @@ LCM_API int lcm_process(lua_State* L, const lcm_Batch b, lcm_ClosureBatch c)
             return LCM_ERRINIT;
         }
         state = luaL_checkudata(L, -1, "LCM.state");
-        state->job_id = b.job_id;
+        state->lambda_id = b.lambda_id;
         state->batch_id = b.batch_id;
     }
     // Get job function.
     {
         luaL_getmetafield(L, -1, "jobs");
-        lua_pushinteger(L, b.job_id);
+        lua_pushinteger(L, b.lambda_id);
         lua_gettable(L, -2);
     }
     // Call job function.
@@ -122,7 +122,7 @@ LCM_API int lcm_process(lua_State* L, const lcm_Batch b, lcm_ClosureBatch c)
     }
     // Handle job results.
     if (status == 0) {
-        lcm_Batch r = {.job_id = b.job_id, .batch_id = b.batch_id };
+        lcm_Batch r = {.lambda_id = b.lambda_id, .batch_id = b.batch_id };
         r.data.bytes = (uint8_t*)lua_tolstring(L, -1, &r.data.length);
         c.function(c.context, &r);
 
@@ -162,15 +162,15 @@ int lcm_l_register(lua_State* L)
         luaL_error(L, "Bad arguments. (`LCM.state`, `function`) expected.");
     }
     // Load job identifier from registry.
-    int32_t job_id;
+    int32_t lambda_id;
     {
         const lcm_State* state = luaL_checkudata(L, 1, "LCM.state");
-        job_id = state->job_id;
+        lambda_id = state->lambda_id;
     }
     // Save job function to registry.
     {
         luaL_getmetafield(L, -2, "jobs");
-        lua_pushinteger(L, job_id);
+        lua_pushinteger(L, lambda_id);
         lua_pushvalue(L, -3); // Copy function reference to top of stack.
         lua_settable(L, -3);
     }
@@ -188,7 +188,7 @@ int lcm_l_log(lua_State* L)
         c.function(
             c.context,
             &(lcm_LogEntry){
-                .job_id = state->job_id,
+                .lambda_id = state->lambda_id,
                 .batch_id = state->batch_id,
                 .message = {.string = message, .length = message_length },
             });

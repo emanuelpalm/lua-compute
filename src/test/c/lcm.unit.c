@@ -38,7 +38,7 @@ void test_log(unit_T* T, void* arg)
     lua_State* L = arg;
 
     // Setup LCM.
-    lcm_LogEntry result_log = {.job_id = 0 };
+    lcm_LogEntry result_log = {.lambda_id = 0 };
     {
         lcm_openlib(L,
             &(lcm_Config){
@@ -50,8 +50,8 @@ void test_log(unit_T* T, void* arg)
     }
     // Register job.
     {
-        const lcm_Job j = {
-            .job_id = 1,
+        const lcm_Lambda l = {
+            .lambda_id = 1,
             .program = {
                 .lua = "lcm:register(function (batch)\n"
                        "  lcm:log(batch)\n"
@@ -59,7 +59,7 @@ void test_log(unit_T* T, void* arg)
                 .length = 51,
             },
         };
-        const int status = lcm_register(L, j);
+        const int status = lcm_register(L, l);
         if (status != 0) {
             unit_failf(T, "[lcm_register] %s\n\t\t\t%s",
                 lcm_errstr(status),
@@ -67,10 +67,10 @@ void test_log(unit_T* T, void* arg)
         }
     }
     // Process batch using registered job.
-    lcm_Batch result_batch = {.job_id = 0 };
+    lcm_Batch result_batch = {.lambda_id = 0 };
     {
         const lcm_Batch input_batch = {
-            .job_id = 1,
+            .lambda_id = 1,
             .batch_id = 2,
             .data = {
                 .bytes = (uint8_t*)"hello",
@@ -93,14 +93,14 @@ void test_log(unit_T* T, void* arg)
 
     // Make sure result batch is untouched, as Lua job function never returned.
     {
-        unit_assert(T, result_batch.job_id == 0);
+        unit_assert(T, result_batch.lambda_id == 0);
         unit_assert(T, result_batch.batch_id == 0);
         unit_assert(T, result_batch.data.bytes == NULL);
         unit_assert(T, result_batch.data.length == 0);
     }
     // Make sure entry logged from Lua context was received.
     {
-        unit_assert(T, result_log.job_id == 1);
+        unit_assert(T, result_log.lambda_id == 1);
         unit_assert(T, result_log.batch_id == 2);
         unit_assert(T, result_log.message.string != NULL
                 && strcmp(result_log.message.string, "hello") == 0);
@@ -119,8 +119,8 @@ void test_process(unit_T* T, void* arg)
     }
     // Register job.
     {
-        const lcm_Job j = {
-            .job_id = 2,
+        const lcm_Lambda l = {
+            .lambda_id = 2,
             .program = {
                 .lua = "lcm:register(function (batch)\n"
                        "  return batch:upper()\n"
@@ -128,7 +128,7 @@ void test_process(unit_T* T, void* arg)
                 .length = 57,
             },
         };
-        const int status = lcm_register(L, j);
+        const int status = lcm_register(L, l);
         if (status != 0) {
             unit_failf(T, "[lcm_register] %s\n\t\t\t%s",
                 lcm_errstr(status),
@@ -136,10 +136,10 @@ void test_process(unit_T* T, void* arg)
         }
     }
     // Process batch using registered job.
-    lcm_Batch result_batch = {.job_id = 0 };
+    lcm_Batch result_batch = {.lambda_id = 0 };
     {
         const lcm_Batch input_batch = {
-            .job_id = 2,
+            .lambda_id = 2,
             .batch_id = 1,
             .data = {
                 .bytes = (uint8_t*)"hello",
@@ -159,7 +159,7 @@ void test_process(unit_T* T, void* arg)
     }
     // Verify result batch state.
     {
-        unit_assert(T, result_batch.job_id == 2);
+        unit_assert(T, result_batch.lambda_id == 2);
         unit_assert(T, result_batch.batch_id == 1);
         unit_assert(T, result_batch.data.bytes != NULL
                 && memcmp(result_batch.data.bytes, "HELLO", 5) == 0);
@@ -176,7 +176,7 @@ static void f_log(void* context, const lcm_LogEntry* entry)
 
     size_t length = MIN(sizeof(message) - 1, entry->message.length);
 
-    result->job_id = entry->job_id;
+    result->lambda_id = entry->lambda_id;
     result->batch_id = entry->batch_id;
     result->message.string = strncpy(message, entry->message.string, length);
     result->message.length = length;
@@ -191,7 +191,7 @@ static void f_batch(void* context, const lcm_Batch* batch)
 
     size_t length = MIN(sizeof(data) - 1, batch->data.length);
 
-    result->job_id = batch->job_id;
+    result->lambda_id = batch->lambda_id;
     result->batch_id = batch->batch_id;
     result->data.bytes = memcpy(data, batch->data.bytes, length);
     result->data.length = length;

@@ -14,7 +14,7 @@
 #include <stdint.h>
 
 typedef struct lcm_Config lcm_Config;
-typedef struct lcm_Job lcm_Job;
+typedef struct lcm_Lambda lcm_Lambda;
 typedef struct lcm_Batch lcm_Batch;
 typedef struct lcm_LogEntry lcm_LogEntry;
 
@@ -65,15 +65,15 @@ struct lcm_Config {
 };
 
 /**
- * Job definition, containing a job ID and a lua program able to process data
- * batches.
+ * Lambda definition, containing a lambda ID and a lua program able to process
+ * data batches.
  *
- * A job is essentially an arbitrary Lua program that is required to call the
- * function `lcm:job(callback)` with a provided callback, which is subsequently
- * called whenever the job receives a new batch of data to process.
+ * The lua program is required to call `lcm:register(lambda)` with a lambda
+ * function. The registered function is subsequently called whenever a data
+ * batch is processed with a matching lambda identifier.
  */
-struct lcm_Job {
-    int32_t job_id;
+struct lcm_Lambda {
+    int32_t lambda_id;
     struct {
         char* lua;
         size_t length;
@@ -81,13 +81,13 @@ struct lcm_Job {
 };
 
 /**
- * A job batch, containing a job ID, a batch ID, and arbitrary data.
+ * A lambda batch, containing a lambda ID, a batch ID, and arbitrary data.
  *
- * Batches are fed as input into jobs, and are also received as output when
- * jobs complete.
+ * Batches are fed as input into lambdas, and are also received as output when
+ * lambdas complete.
  */
 struct lcm_Batch {
-    int32_t job_id, batch_id;
+    int32_t lambda_id, batch_id;
     struct {
         uint8_t* bytes;
         size_t length;
@@ -100,7 +100,7 @@ struct lcm_Batch {
  * Provided when receiving Lua `lcm:log()` calls.
  */
 struct lcm_LogEntry {
-    int32_t job_id;
+    int32_t lambda_id;
     int32_t batch_id;
     struct {
         const char* string;
@@ -115,15 +115,16 @@ struct lcm_LogEntry {
 LCM_API void lcm_openlib(lua_State* L, const lcm_Config* c);
 
 /**
- * Registers provided job in Lua state.
+ * Registers provided lambda in Lua state.
  *
- * The job is safe to destroy at any point after the function returns.
+ * The provided lambda object is safe to destroy at any point after the
+ * function returns.
  *
  * Returns `0` (OK), `LCM_ERRRUN`, `LCM_ERRSYNTAX`, `LCM_ERRMEM`, `LCM_ERRERR`,
  * `LCM_ERRINIT`, or `LCM_ERRNOCALL`. The last is returned only if the provided
- * job fails to call `lcm:job()` when evaluated.
+ * lambda fails to call `lcm:lambda()` when evaluated.
  */
-LCM_API int lcm_register(lua_State* L, const lcm_Job j);
+LCM_API int lcm_register(lua_State* L, const lcm_Lambda l);
 
 /**
  * Processes, using referenced Lua state, batch `b` and provides any results to
@@ -132,8 +133,8 @@ LCM_API int lcm_register(lua_State* L, const lcm_Job j);
  * The batch provided to `c` is destroyed after the closure function returns.
  *
  * Returns `0` (OK), `LCM_ERRRUN`, `LCM_ERRMEM`, `LCM_ERRERR`, `LCM_ERRINIT` or
- * `LCM_ERRNORESULT`. The last is returned only if the job processing the batch
- * fails to return a batch result, in which case `c` is never called.
+ * `LCM_ERRNORESULT`. The last is returned only if the lambda processing the
+ * batch fails to return a batch result, in which case `c` is never called.
  */
 LCM_API int lcm_process(lua_State* L, const lcm_Batch b, lcm_ClosureBatch c);
 
