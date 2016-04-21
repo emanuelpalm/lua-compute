@@ -2,6 +2,7 @@
 #include "unit.h"
 #include <lauxlib.h>
 #include <lua.h>
+#include <lualib.h>
 #include <string.h>
 
 //{ Data registered during calls to `logf()`.
@@ -98,6 +99,7 @@ void test_process(unit_T* T, void* arg)
 {
     lua_State* L = arg;
 
+    luaL_openlibs(L);
     lmr_openlib(L, &(lmr_Config){.log_function = logf });
 
     const lmr_Job j = {
