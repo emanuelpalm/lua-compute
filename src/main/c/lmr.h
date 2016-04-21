@@ -32,7 +32,18 @@ typedef struct {
  *
  * Provided log entries are destroyed right after a log function returns.
  */
-typedef void (*lmr_LogFunction)(const lmr_LogEntry* entry);
+typedef void (*lmr_LogFunction)(void* context, const lmr_LogEntry* entry);
+
+/**
+ * Closure holding some arbitrary context pointer and a function for
+ * `lmr:log()` calls.
+ *
+ * When `function` is called, the `context` should be provided as argument.
+ */
+typedef struct {
+    void* context;
+    lmr_LogFunction function;
+} lmr_LogClosure;
 
 /**
  * LMR Lua library configuration.
@@ -41,8 +52,8 @@ typedef void (*lmr_LogFunction)(const lmr_LogEntry* entry);
  * to configure LMR behavior.
  */
 typedef struct {
-    /// Log function used when forwarding `lmr:log()` calls. May be NULL.
-    lmr_LogFunction log_function;
+    /// Log closure used when forwarding `lmr:log()` calls. May be NULL.
+    lmr_LogClosure closure_log;
 } lmr_Config;
 
 /**

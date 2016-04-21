@@ -36,7 +36,7 @@ void suite_lmr(unit_T* T)
 }
 
 // Used to test the `lmr:log()` lua function.
-static void f_log(const lmr_LogEntry* entry)
+static void f_log(void* context, const lmr_LogEntry* entry)
 {
     static char message[64];
     message[sizeof(message) - 1] = '\0';
@@ -66,7 +66,7 @@ void test_log(unit_T* T, void* arg)
 {
     lua_State* L = arg;
 
-    lmr_openlib(L, &(lmr_Config){.log_function = f_log });
+    lmr_openlib(L, &(lmr_Config){.closure_log = {.function = f_log } });
 
     const lmr_Job j = {
         .job_id = 1,

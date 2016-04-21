@@ -10,7 +10,7 @@
 typedef struct {
     int32_t job_id;
     int32_t batch_id;
-    lmr_LogFunction log_function;
+    lmr_LogClosure closure_log;
 } lmr_State;
 
 LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c)
@@ -21,7 +21,7 @@ LMR_API void lmr_openlib(lua_State* L, const lmr_Config* c)
         state->batch_id = 0;
         state->job_id = 0;
         if (c != NULL) {
-            state->log_function = c->log_function;
+            state->closure_log = c->closure_log;
         }
         luaL_newmetatable(L, "LMR.state");
 
@@ -165,12 +165,15 @@ int lmr_l_log(lua_State* L)
     size_t message_length;
     const char* message = luaL_checklstring(L, 2, &message_length);
 
-    if (state->log_function != NULL) {
-        state->log_function(&(lmr_LogEntry){
-            .job_id = state->job_id,
-            .batch_id = state->batch_id,
-            .message = {.string = message, .length = message_length },
-        });
+    const lmr_LogClosure c = state->closure_log;
+    if (c.function != NULL) {
+        c.function(
+            c.context,
+            &(lmr_LogEntry){
+                .job_id = state->job_id,
+                .batch_id = state->batch_id,
+                .message = {.string = message, .length = message_length },
+            });
     }
     return 0;
 }
