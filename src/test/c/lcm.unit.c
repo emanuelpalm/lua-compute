@@ -61,9 +61,7 @@ void test_log(unit_T* T, void* arg)
         };
         const int status = lcm_register(L, l);
         if (status != 0) {
-            unit_failf(T, "[lcm_register] %s\n\t\t\t%s",
-                lcm_errstr(status),
-                lua_tostring(L, -1));
+            unit_failf(T, "[lcm_register] %s", lcm_errstr(status));
         }
     }
     // Process batch using registered job.
@@ -83,11 +81,10 @@ void test_log(unit_T* T, void* arg)
         };
         const int status = lcm_process(L, input_batch, result_closure);
         if (status != LCM_ERRNORESULT) {
-            unit_failf(T, "[lcm_process] %s\n\t\t\t%s",
-                lcm_errstr(status),
+            unit_failf(T, "[lcm_process] %s",
                 status == 0
                     ? "Returned OK, expected LCM_ERRNORESULT."
-                    : lua_tostring(L, -1));
+                    : lcm_errstr(status));
         }
     }
 
@@ -130,9 +127,7 @@ void test_process(unit_T* T, void* arg)
         };
         const int status = lcm_register(L, l);
         if (status != 0) {
-            unit_failf(T, "[lcm_register] %s\n\t\t\t%s",
-                lcm_errstr(status),
-                lua_tostring(L, -1));
+            unit_failf(T, "[lcm_register] %s", lcm_errstr(status));
         }
     }
     // Process batch using registered job.
@@ -152,9 +147,7 @@ void test_process(unit_T* T, void* arg)
         };
         const int status = lcm_process(L, input_batch, result_closure);
         if (status != 0) {
-            unit_failf(T, "[lcm_process] %s\n\t\t\t%s",
-                lcm_errstr(status),
-                lua_tostring(L, -1));
+            unit_failf(T, "[lcm_process] %s", lcm_errstr(status));
         }
     }
     // Verify result batch state.

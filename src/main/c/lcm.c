@@ -119,7 +119,6 @@ LCM_API int lcm_process(lua_State* L, const lcm_Batch b, lcm_ClosureBatch c)
         lua_gettable(L, -2);
         if (lua_type(L, -1) != LUA_TFUNCTION) {
             lua_pop(L, 3);
-            lua_pushfstring(L, "lambda{id=%d} not available", b.lambda_id);
             return LCM_ERRNOLAMBDA;
         }
     }
@@ -133,7 +132,6 @@ LCM_API int lcm_process(lua_State* L, const lcm_Batch b, lcm_ClosureBatch c)
         }
         if (lua_type(L, -1) != LUA_TSTRING) {
             lua_pop(L, 3);
-            lua_pushliteral(L, "must return `string`");
             return LCM_ERRNORESULT;
         }
     }
