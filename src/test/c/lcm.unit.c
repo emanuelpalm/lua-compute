@@ -14,6 +14,10 @@ void provider_lua_state(unit_T* T, unit_TestFunction t)
         unit_fatal(T, "Failed to create new Lua state object.");
     }
     t(T, L);
+    const int top = lua_gettop(L);
+    if (top > 0) {
+        unit_failf(T, "Lua stack must be empty. Contains %d entries.\n", top);
+    }
     lua_close(L);
 }
 
