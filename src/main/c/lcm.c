@@ -1,6 +1,6 @@
 #include "lcm.h"
 #include "lcmlua.h"
-#include <lauxlib.h>
+#include "lauxlib.h"
 #include <stdlib.h>
 
 #define LCM_STATE_METAFIELD_LAMBDAS "lambdas"

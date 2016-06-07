@@ -6,7 +6,7 @@
 #ifndef lcmconf_h
 #define lcmconf_h
 
-#include <lua.h>
+#include "lua.h"
 
 /** Public API function linkage. */
 #define LCM_API extern
