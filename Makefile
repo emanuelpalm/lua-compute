@@ -19,8 +19,6 @@ ifeq (${PLATFORM_OS},Linux)
 endif
 
 # Build settings.
-AR              = ar -rcu
-CC              = clang
 CFLAGS          = -std=c99 -Wall -Wpedantic ${PLATFORM_CFLAGS}
 LDFLAGS         = ${PLATFORM_LDFLAGS}
 LIBS            = ${PLATFORM_LIBS}
