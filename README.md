@@ -2,10 +2,21 @@
 
 # Lua/compute
 
-The Lua/compute C library allows arbitrary Lua states to be used as compute
-contexts. It defines two significant components, namely (1) _lambdas_, and (2)
-_batches_. Lambda definitions may be fed into any properly initialized Lua
-state in order make lambda functions available for subsequent batch processing.
+The Lua/compute C library facilitates the use of [Lua][lua] programs as compute
+contexts. A compute context is a set of functions that all accept byte array
+arguments, and return byte array results. In Lua/compute, these functions are
+referred to as *lambdas*, and the byte array input/output values are called
+*batches*. One could think of Lua/compute as one big function, that takes
+batches and lambda identifiers as input, and return processed batches as
+output, as illustrated by the below diagram.
+
+[lua]: http://www.lua.org/
+
+![diagram](design/docs/lua-compute-diagram.png)
+
+## Examples
+
+TODO
 
 Read more about the Lua/compute C API [here](src/main/c/lcm.h).
 
