@@ -47,8 +47,8 @@ SOEXT           = ${PLATFORM_SOEXT}
 # Source and object files.
 CFILES          = $(wildcard src/main/c/*.c)
 OFILES          = $(CFILES:%.c=%.${OEXT})
-LIBA            = libluamare.a
-LIBSO           = libluamare.${SOEXT}
+LIBA            = libluacompute.a
+LIBSO           = libluacompute.${SOEXT}
 
 DEBUG_LIBA      = $(LIBA:%.a=%.debug.a)
 DEBUG_LIBSO     = $(LIBSO:%.${SOEXT}=%.debug.${SOEXT})
@@ -56,7 +56,7 @@ DEBUG_LIBSO     = $(LIBSO:%.${SOEXT}=%.debug.${SOEXT})
 RELEASE_LIBA    = ${LIBA}
 RELEASE_LIBSO   = ${LIBSO}
 
-TEST_BIN        = lcm-tests.out
+TEST_BIN        = test.out
 TEST_CFILES     = ${CFILES} $(wildcard src/test/c/*.c)
 TEST_OFILES     = $(TEST_CFILES:%.c=%.${OEXT})
 
