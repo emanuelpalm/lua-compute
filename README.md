@@ -1,3 +1,5 @@
+![icon](design/icon/web-270dpi.png)
+
 # Lua/compute
 
 The Lua/compute C library allows arbitrary Lua states to be used as compute
