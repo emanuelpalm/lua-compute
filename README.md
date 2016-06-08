@@ -3,8 +3,8 @@
 # Lua/compute
 
 The Lua/compute C library facilitates the use of [Lua][lua] programs as compute
-contexts. A compute context is a set of functions that all accept byte array
-arguments, and return byte array results. In Lua/compute, these functions are
+contexts. In Lua/compute, a compute context is a set of functions that all
+accept byte array arguments, and return byte array results. These functions are
 referred to as *lambdas*, and the byte array input/output values are called
 *batches*. One could think of Lua/compute as one big function, that takes
 batches and lambda identifiers as input, and return processed batches as
@@ -14,11 +14,154 @@ output, as illustrated by the below diagram.
 
 ![diagram](design/docs/lua-compute-diagram.png)
 
-## Examples
+Read more about the details of Lua/compute C API [here](src/main/c/lcm.h).
 
-TODO
+## Manual
 
-Read more about the Lua/compute C API [here](src/main/c/lcm.h).
+### Initializing Lua State Context
+
+From the perspective of Lua, Lua/compute is just a C library that exposes Lua
+functions. In order to use Lua/compute, an existing Lua state is required.
+Setting up a Lua state and then attaching Lua/compute to it can be done as in
+the below example.
+
+```c
+// Lua/compute main header.
+#include <lcm.h>
+
+// Lua headers.
+#include <lua.h>
+#include <lualib.h>
+
+int main()
+{
+    lua_State* L = luaL_newstate();
+
+    // Attach Lua/compute functions to Lua state.
+    lcm_openlib(L, NULL);
+
+    // Use Lua state and Lua/compute ...
+
+    lua_close(L);
+}
+```
+
+### Registering Lambdas
+
+After attaching Lua/compute to a Lua state, it has to be provided with lambda
+functions before it can be used to process batches. This is done by providing
+lua programs that invoke `lcm:register()` with a Lua function as argument. This
+function can later be called in order to process batches, and should, because
+of this, accept a single `batch` parameter, and return a new batch at some
+point.
+
+```c
+// Headers ...
+
+int main()
+{
+    lua_State* L = luaL_newstate();
+    luaL_openlibs(L); // Loads Lua standard library.
+    lcm_openlib(L, NULL);
+
+    // Registers program that turns batch characters to uppercase.
+    const char* to_uppercase = ""
+        "lcm:register(function (batch)\n"
+        "  batch:upper()\n"
+        "end)";
+
+    lcm_register(L, (lcm_Lambda){
+        .lambda_id = 1,
+        .program = { .lua = to_uppercase, .length = strlen(to_uppercase) },
+    });
+
+    // Use Lua state and Lua/compute ...
+
+    lua_close(L);
+}
+```
+
+### Processing Batches
+
+When a properly set up Lua state contains at least one registered lambda, it
+can be used to process batches. This is done using the `lcm_process` function,
+which accepts a lambda identifier, a batch identifier, and any byte array. It
+calls a referenced function with the result of the batch processing, if it was
+successful.
+
+```c
+// Headers ...
+
+// This function is called with any `batch_process` results.
+static void on_batch(void* context, const lcm_Batch* batch);
+
+int main()
+{
+    lua_State* L = luaL_newstate();
+    luaL_openlibs(L);
+    lcm_openlib(L, NULL);
+
+    const char* to_uppercase = ""
+        "lcm:register(function (batch)\n"
+        "  batch:upper()\n"
+        "end)";
+
+    lcm_register(L, (lcm_Lambda){
+        .lambda_id = 1,
+        .program = { .lua = to_uppercase, .length = strlen(to_uppercase) },
+    });
+
+    // Right before this function returns, the `on_batch` function is called
+    // with the batch result `"HELLO"`.
+    lcm_process(L, (lcm_Batch){
+        .lambda_id = 1,
+        .batch_id = 100,
+        .data = { .bytes = (uint8_t*)"hello", .length = 5 },
+    }, (lcm_ClosureBatch){
+        .context = NULL,
+        .function = on_batch,
+    });
+
+    lua_close(L);
+}
+```
+
+### Capturing Log Output
+
+To make it more straightforward to handle log output, the Lua/compute library
+provides the Lua function `lcm:log()`, which accepts a single string argument.
+Calling this while a lambda is being registered or a batch being processed will
+cause a C function, if properly referenced, to be called with the ID of the
+lambda and/or batch currently active.
+
+```c
+// Headers ...
+
+// This function is called whenever the `lcm:log()` function is called.
+static void on_log(void* context, const lcm_LogEntry* entry);
+
+int main()
+{
+    lua_State* L = luaL_newstate();
+
+    lcm_openlib(L, &(lcm_Config){
+        .closure_log = { .context = null, .function = on_log },
+    });
+
+    // Use Lua state and Lua/compute ...
+
+    lua_close(L);
+}
+```
+
+### Structured Batch Data, Libraries, etc.
+
+If wanting to decode JSON structured batches, perform vector calculations, or
+any other task that isn't facilitated directly by the standard Lua library,
+there are two primary ways to get that functionality.
+
+1. Provide the functionality as Lua code inside registered lambdas.
+2. Attach C libraries that expose Lua functions to the used Lua state.
 
 ## Building and Installing
 
